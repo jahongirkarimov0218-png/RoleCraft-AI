@@ -11,7 +11,7 @@ export function RoleCraftHeader({ status = "idle" }: RoleCraftHeaderProps) {
   const [showMethodologyModal, setShowMethodologyModal] = useState(false);
 
   return (
-    <div className="w-full border-b border-slate-200/80 bg-white/70 backdrop-blur-md">
+    <header className="no-print w-full border-b border-slate-200/80 bg-white/70 backdrop-blur-md">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
         {/* Brand Identity */}
         <div className="flex items-center gap-3">
@@ -94,7 +94,7 @@ export function RoleCraftHeader({ status = "idle" }: RoleCraftHeaderProps) {
                 aria-label="Yopish"
                 data-testid="close-methodology-modal"
                 onClick={() => setShowMethodologyModal(false)}
-                className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 active:scale-95 transition-[transform,background-color] duration-100"
+                className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 active:scale-[0.98] transition-[transform,background-color] duration-100"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -142,7 +142,7 @@ export function RoleCraftHeader({ status = "idle" }: RoleCraftHeaderProps) {
           </div>
         </div>
       )}
-    </div>
+    </header>
   );
 }
 

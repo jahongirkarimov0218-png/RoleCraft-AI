@@ -62,10 +62,10 @@ export function ActionBar({
 
         {rawMetrics && (
           <>
-            <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+            <span className="rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 tabular-nums">
               0% Klishe (Anti-Slop Clean)
             </span>
-            <span className="rounded-full bg-indigo-50 border border-indigo-200 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
+            <span className="rounded-full bg-indigo-50 border border-indigo-200 px-2 py-0.5 text-[10px] font-semibold text-indigo-700 tabular-nums">
               {rawMetrics.impactDeliverablesCount} ta Biznes Marra (Impact)
             </span>
           </>

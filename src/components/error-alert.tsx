@@ -104,7 +104,7 @@ export function ErrorAlert({
           <button
             type="button"
             onClick={onRetry}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-medium text-rose-800 shadow-subtle hover:bg-rose-50/80 active:scale-95 transition-all"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-3 py-1.5 text-xs font-medium text-rose-800 shadow-subtle hover:bg-rose-50/80 active:scale-[0.98] transition-[color,background-color,border-color,transform] duration-150 ease-out"
           >
             <RotateCw className="h-3 w-3" />
             <span>Qayta urinish</span>

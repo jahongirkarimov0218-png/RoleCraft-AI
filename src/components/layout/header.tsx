@@ -12,7 +12,7 @@ export function Header() {
             className="group flex items-center gap-2.5 rounded-md focus-ring"
             aria-label="Customer Feedback AI Home"
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-950 text-white shadow-xs transition-transform duration-150 group-hover:scale-105 active:scale-95 ease-emil">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-slate-950 text-white shadow-xs transition-transform duration-150 group-hover:scale-105 active:scale-[0.98] ease-emil">
               <Layers className="h-3.5 w-3.5 text-slate-100" />
             </div>
             <span className="text-sm font-semibold tracking-tight text-slate-950 transition-colors group-hover:text-slate-800">
@@ -27,7 +27,7 @@ export function Header() {
             href="https://github.com/jahongirkarimov0218-png/customer-feedback-ai"
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex items-center gap-1.5 rounded-md border border-slate-200/80 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-xs transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 active-press focus-ring"
+            className="group inline-flex items-center gap-1.5 rounded-md border border-slate-200/80 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 shadow-xs transition-[color,background-color,border-color] duration-150 ease-out hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 active-press focus-ring"
           >
             <Github className="h-3.5 w-3.5 text-slate-600" />
             <span className="hidden sm:inline">GitHub</span>

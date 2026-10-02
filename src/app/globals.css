@@ -133,6 +133,20 @@
     animation: modalEnter 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
+  /* Shimmer wave animation */
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+  }
+
   /* Tactile button bounce */
   .tactile-btn {
     transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1), background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out, box-shadow 150ms ease-out;
