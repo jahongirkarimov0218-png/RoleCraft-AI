@@ -1,68 +1,100 @@
 <!-- autopilot:start -->
-# Customer Feedback AI Intelligence
+# RoleCraft AI — Enterprise Job Description Generator
 
-Mijozlarning matnli fikrlarini (feedback) sun'iy intellekt yordamida chuqur semantik tahlil qiluvchi, sentiment, takrorlanuvchi muammolar, 3 ta top insight va ustuvor yechimlar jadvalini ishlab chiquvchi production-ready Next.js SaaS platformasi.
+Интеллектуальная SaaS-платформа для найма уровня Enterprise, трансформирующая стандартные HR-описания вакансий в стратегические спецификации должностей на основе методологии Lou Adler Performance-Based Hiring и интерактивного фреймворка Thinking Partner (/prompt-nenujna).
 
-## Ko'rsatmalar va buyruqlar
+## Проверенные команды
 
-| Buyruq | Maqsadi |
-|--------|---------|
-| `npm install` | Bog'liqliklarni o'rnatish |
-| `npm run dev` | Mahalliy dev-serverni ishga tushirish (http://localhost:3000) |
-| `npm test` | Vitest orqali barcha avtomatlashtirilgan testlarni ishga tushirish (33 ta test) |
-| `npm run build` | Next.js production build qilish |
+| Команда | Описание |
+|---------|----------|
+| `npm install` | Установка зависимостей проекта |
+| `npm run dev` | Запуск локального dev-сервера (http://localhost:3000) |
+| `npm test` | Запуск полного набора автотестов Vitest (62 теста: движок, UI, безопасность, парсеры) |
+| `npx playwright test e2e/rolecraft.spec.ts` | Запуск Playwright E2E тестов (7 сценариев, десктоп и мобильный Pixel 5) |
+| `npm run build` | Сборка production-билда Next.js App Router |
 
-## Loyiha tuzilmasi
+## Структура проекта
 
 ```
 d:/portfolio/
 ├── src/
-│   ├── app/                    # Next.js App Router (layout, page, globals.css)
-│   │   └── api/analyze/        # Server-side Route Handler POST /api/analyze
-│   ├── components/             # UI komponentlari
-│   │   ├── feedback-input.tsx  # Matn kiritish, belgilar hisoblagichi, CTA
-│   │   ├── presets.tsx         # 4 ta sanoat keysi (E-commerce, SaaS, Fintech, Service)
-│   │   ├── skeleton-loader.tsx # Shimmer yuklanish animatsiyalari
-│   │   ├── error-alert.tsx     # Xatoliklar banneri va retry
-│   │   ├── layout/             # Header va Footer
-│   │   └── results/            # Natijalar paneli
-│   │       ├── summary-card.tsx    # Executive Summary & Health Score
-│   │       ├── sentiment-card.tsx  # Positive/Neutral/Negative progress barlar
-│   │       ├── top-insights.tsx    # Top 3 ta strategik xulosa
-│   │       └── problems-table.tsx  # Muammo | Ustuvorlik | Yechim jadvali (filter, export)
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── rolecraft/generate/   # Server-side Route Handler POST: валидация, SSE стриминг
+│   │   │   └── analyze/              # API Route Handler анализа фидбека
+│   │   ├── globals.css               # Emil Kowalski физика (:active scale 0.98), @media print стили
+│   │   ├── layout.tsx                # Базовый макет: шрифты Geist/Inter, метаданные
+│   │   └── page.tsx                  # Главная страница: управление состоянием, SSE поток, UI RoleCraft
+│   ├── components/
+│   │   ├── rolecraft/                # UI-компоненты RoleCraft генератора
+│   │   │   ├── header.tsx            # Enterprise-шапка, статус Thinking Partner, модалка методики
+│   │   │   ├── presets-bar.tsx       # Панель 4 отраслевых пресетов с тактильным откликом
+│   │   │   ├── rolecraft-form.tsx    # Форма ввода (4 поля), валидация, счетчики (tabular-nums)
+│   │   │   ├── thinking-partner-card.tsx # Карточка стратегического анализа: Root Cause & A-Player
+│   │   │   ├── shimmer-loader.tsx    # Контекстный скелетон стадий синтеза
+│   │   │   ├── streaming-markdown-view.tsx # Стриминг Markdown с бейджами Anti-Persona и Value Prop
+│   │   │   ├── action-bar.tsx        # Метрики качества, 1-клик копирование и чистый PDF экспорт
+│   │   │   └── index.ts              # Баррель-экспорт компонентов
+│   │   └── layout/                   # Общие элементы макета (Header, Footer)
 │   ├── lib/
-│   │   ├── analyzer/           # AI tahlil arxitekturasi (Gemini, OpenAI, Fallback Engine)
-│   │   └── utils.ts            # clsx va twMerge yordamchilari
-│   └── types/
-│       └── analyzer.ts         # Qat'iy TypeScript interfeyslari
-├── test/                       # Vitest test to'plami (unit, integration, e2e)
-├── docs/adr/                   # Arxitektura qarorlari qaydlari (ADR 0001, 0002, 0003)
-├── vercel.json                 # Vercel deployment konfiguratsiyasi
-└── .env.example                # Server muhit o'zgaruvchilari namunasi
+│   │   ├── rolecraft/                # Доменный движок генерации и обработки
+│   │   │   ├── types.ts              # TypeScript контракты (RoleCraftInput, RoleCraftOutput, etc.)
+│   │   │   ├── presets.ts            # 4 enterprise пресета (Staff AI, Growth, Design, Engineering Dir)
+│   │   │   ├── anti-slop-filter.ts   # Детекция и очистка HR-клише (cleanAntiSlopText, detectSlopPhrases)
+│   │   │   ├── prompt-nenujna-engine.ts # Движок синтеза: LLM + офлайн Fallback + генератор SSE стрима
+│   │   │   ├── export-pdf.ts         # Утилита вызова чистого браузерного PDF экспорта
+│   │   │   └── index.ts              # Баррель-экспорт библиотеки
+│   │   └── utils.ts                  # Утилиты классов (clsx, tailwind-merge)
+│   └── types/                        # Общие системные типы
+├── e2e/
+│   └── rolecraft.spec.ts             # Playwright E2E тесты (загрузка, пресеты, генерация, копирование, PDF, валидация, мобайл)
+├── test/
+│   ├── rolecraft/
+│   │   ├── engine.test.ts            # Юнит-тесты движка, фильтра клише и генератора (9 тестов)
+│   │   └── ui-components.test.ts     # Юнит-тесты компонентов формы, карточек и экшенов (9 тестов)
+│   └── ...                           # Тесты анализатора, контрактов и безопасности (всего 62 теста)
+├── docs/adr/                         # Архитектурные решения (ADR 0001, 0002, 0003)
+├── playwright.config.ts              # Конфигурация Playwright E2E
+└── vitest.config.ts                  # Конфигурация Vitest
 ```
 
-## Arxitektura va Ma'lumotlar oqimi
+## Архитектура и поток данных
 
-1. **Kirish**: Foydalanuvchi matn kiritadi yoki 4 ta presetdan birini tanlaydi.
-2. **So'rov**: Client Next.js serveriga `POST /api/analyze` so'rovini yuboradi.
-3. **Validatsiya**: Server matn uzunligi va formatini tekshiradi (kamida 10 ta belgi).
-4. **AI Tahlil**:
-   - `GEMINI_API_KEY` mavjud bo'lsa -> Google Gemini 1.5 modeli.
-   - `OPENAI_API_KEY` mavjud bo'lsa -> OpenAI GPT modeli.
-   - Kalitsiz yoki xatolikda -> `fallback-engine.ts` (100% oflayn aqlli semantik tahlil).
-5. **Chiqish**: Qat'iy JSON formatdagi `AnalysisResponse` mijozga qaytariladi va interaktiv dashboardda render qilinadi.
+1. **Методология Thinking Partner + Lou Adler Outcome-driven (`/prompt-nenujna`)**:
+   - Отказ от бессмысленных HR-шаблонов («5+ лет опыта», «стрессоустойчивость», «дружный коллектив»).
+   - **Root Cause Analysis**: Выявление истинной боли бизнеса, стоящей за открытием позиции.
+   - **Психология A-Player**: Анализ скрытых страхов сильнейших кандидатов (бюрократия, брошенные PoC) и ключевых драйверов (автономия, реальное влияние).
+   - **6-месячный измеримый Impact**: Конкретные цели на 30, 90 и 180 дней вместо абстрактных обязанностей.
+   - **🛑 Anti-Persona**: Открытое описание типажей, которым категорически не подходит роль.
+   - **🚀 Value Proposition**: Реальное ценностное предложение и гарантии компании.
+   - **Фильтр Anti-Slop**: Автоматическая детекция и удаление корпоративного буллшита через `cleanAntiSlopText`.
 
-## Muhit o'zgaruvchilari (Environment Variables)
+2. **Мультипровайдерный AI и 100% Offline Intelligent Fallback**:
+   - `GEMINI_API_KEY`: Google Gemini 1.5 Flash (`temperature: 0.2`, структурированный JSON).
+   - `OPENAI_API_KEY`: OpenAI GPT-4o-mini (`response_format: { type: "json_object" }`).
+   - При отсутствии API-ключей или сетевых сбоях активируется **Intelligent Fallback Engine** (`synthesizeOfflineOutcome`): автономный эвристический генератор, определяющий доменный профиль (AI/ML, Growth, Design, Platform) и создающий глубокую детализированную спецификацию без внешних зависимостей.
 
-- `GEMINI_API_KEY`: Google Gemini API kaliti (ixtiyoriy)
-- `OPENAI_API_KEY`: OpenAI API kaliti (ixtiyoriy)
-- `GROQ_API_KEY`: Groq API kaliti (ixtiyoriy)
-*Eslatma: API kalitisiz ham ichki semantik dvigatel tufayli platforma to'liq ishlaydi.*
+3. **SSE Стриминг (`/api/rolecraft/generate`)**:
+   - Эндпоинт поддерживает протокол Server-Sent Events (`accept: text/event-stream` или `stream: true`).
+   - Функция-генератор `generateRoleCraftStream` передает поток текста Markdown порционными чанками с плавным рендерингом в реальном времени, завершая передачу метаданными `done`.
 
-## Kodlash qoidalari va Dizayn tizimi
-- Roma Rayt referensi asosida: No AI-slop, ortiqcha neonlar va keraksiz gradientlarsiz.
-- Slate neytral foni, 1px subtle hoshiyalar, Geist/Inter shrift ierarxiyasi.
-- Status ranglari: Emerald (ijobiy / low priority), Amber (neytral / medium priority), Rose (salbiy / high priority).
+4. **Тактильная физика Emil Kowalski**:
+   - Отзывчивые микровзаимодействия: `:active { transform: scale(0.98); }` для всех интерактивных кнопок и карточек пресетов.
+   - Запрет на недискретные `transition: all` — строго явные свойства: `transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1), background-color 150ms ease-out, border-color 150ms ease-out`.
+   - Всплывающие модальные окна с keyframes `modalEnter`: масштабирование от 0.96 до 1 с прозрачностью за 200ms `ease-out`.
+   - Числовые счетчики символов и метрики оформлены через `tabular-nums` для предотвращения скачков верстки.
+   - Высококачественный Enterprise дизайн: палитра Slate/Zinc, 1px деликатные границы (`border-slate-200/90`), нулевой AI-slop (без кислотных градиентов и псевдо-неона).
+
+5. **1-клик копирование Markdown и чистый PDF экспорт (`@media print`)**:
+   - Панель `ActionBar` обеспечивает мгновенное копирование чистого Markdown (`navigator.clipboard.writeText`) с тактильной обратной связью: зеленая плашка с состоянием `Copied!` и временный toast.
+   - Чистый PDF-экспорт реализован через `triggerCleanPdfExport`: динамическая подстановка имени роли в заголовок страницы и вызов системного диалога печати `window.print()`.
+   - Специальные правила `@media print` в `globals.css`: полное скрытие навигации, шапки, футера, кнопок и формы ввода (`display: none !important`), белый контрастный фон `#ffffff`, сохранение верстки на страницах A4 без разрыва блоков (`break-inside: avoid !important`).
+
+## Переменные окружения (Environment Variables)
+
+- `GEMINI_API_KEY`: API ключ Google Gemini (опционально)
+- `OPENAI_API_KEY`: API ключ OpenAI (опционально)
+*Примечание: Платформа полностью работоспособна без указания API-ключей благодаря встроенному автономному движку семантического синтеза.*
 
 ## Autopilot ishlash tartibi
 Sборка ведётся навыком `/autopilot`. Требования, спецификация и таски — в `.autopilot/`.
