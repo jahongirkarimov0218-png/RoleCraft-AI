@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { RoleCraftInput } from "@/lib/rolecraft/types";
 import { Sparkles, AlertCircle, RotateCcw, Briefcase, Building2, Flame, Layers } from "lucide-react";
 
@@ -22,8 +22,10 @@ export function RoleCraftForm({
   onReset,
 }: RoleCraftFormProps) {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [formValidationError, setFormValidationError] = useState<string | null>(null);
 
   const handleChange = (field: keyof RoleCraftInput, val: string) => {
+    setFormValidationError(null);
     onChange({
       ...values,
       [field]: val,
@@ -45,6 +47,12 @@ export function RoleCraftForm({
     isCoreBusinessPainValid &&
     isTechStackValid;
 
+  useEffect(() => {
+    if (isFormValid) {
+      setFormValidationError(null);
+    }
+  }, [isFormValid]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setTouched({
@@ -54,7 +62,13 @@ export function RoleCraftForm({
       techStackAndSkills: true,
     });
 
-    if (!isFormValid || isLoading) return;
+    if (!isFormValid || isLoading) {
+      setFormValidationError(
+        "Iltimos, barcha majburiy maydonlarni to'liq to'ldiring (kamida belgilangan minimal belgilar soni)."
+      );
+      return;
+    }
+    setFormValidationError(null);
     onSubmit();
   };
 
@@ -74,7 +88,11 @@ export function RoleCraftForm({
         {onReset && (
           <button
             type="button"
-            onClick={onReset}
+            onClick={() => {
+              setTouched({});
+              setFormValidationError(null);
+              onReset();
+            }}
             disabled={isLoading}
             className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-50 active:scale-[0.98] transition-[transform,background-color,color] duration-150"
           >
@@ -229,10 +247,14 @@ export function RoleCraftForm({
       </div>
 
       {/* Global Error Banner if any */}
-      {error && (
-        <div className="rounded-lg border border-rose-200 bg-rose-50/60 p-3 text-xs text-rose-700 flex items-start gap-2">
+      {(formValidationError || error) && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-lg border border-rose-200 bg-rose-50/60 p-3 text-xs text-rose-700 flex items-start gap-2"
+        >
           <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
-          <span>{error}</span>
+          <span>{formValidationError || error}</span>
         </div>
       )}
 
@@ -240,7 +262,7 @@ export function RoleCraftForm({
       <div className="pt-2">
         <button
           type="submit"
-          disabled={isLoading || !isFormValid}
+          disabled={isLoading}
           className="group relative flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 active:scale-[0.98] transition-[transform,background-color,box-shadow,opacity] duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-50 focus-ring"
         >
           {isLoading ? (

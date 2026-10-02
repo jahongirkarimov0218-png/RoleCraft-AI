@@ -75,6 +75,13 @@ export default function HomePage() {
   };
 
   const handleResetRoleCraft = () => {
+    setRoleCraftInput({
+      roleTitle: "",
+      companyContext: "",
+      coreBusinessPain: "",
+      techStackAndSkills: "",
+    });
+    setActivePresetId(null);
     setRoleCraftOutput(null);
     setStreamingMarkdown("");
     setRoleCraftError(null);

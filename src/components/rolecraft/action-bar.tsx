@@ -87,7 +87,7 @@ export function ActionBar({
           {copied ? (
             <>
               <Check className="h-3.5 w-3.5 text-emerald-600 animate-in zoom-in-75 duration-150" />
-              <span>Nusxalandi!</span>
+              <span>Copied!</span>
             </>
           ) : (
             <>

@@ -6,7 +6,11 @@ test.describe("Founder-Grade Customer Feedback Intelligence E2E", () => {
   }) => {
     // 1. Visit homepage
     await page.goto("/");
-    await expect(page).toHaveTitle(/Customer Feedback|Mijoz/i);
+    const feedbackTab = page.locator("button:has-text('Customer Feedback AI')");
+    if (await feedbackTab.isVisible()) {
+      await feedbackTab.click();
+    }
+    await expect(page).toHaveTitle(/Customer Feedback|Mijoz|RoleCraft/i);
 
     // 2. Verify UVP micro-badge without emojis
     const uvpBadge = page.locator("text=Linear va Jira uchun tayyor backlog");
@@ -47,7 +51,11 @@ test.describe("Founder-Grade Customer Feedback Intelligence E2E", () => {
   }) => {
     // 1. Visit homepage
     await page.goto("/");
-    await expect(page).toHaveTitle(/Customer Feedback|Mijoz/i);
+    const feedbackTab = page.locator("button:has-text('Customer Feedback AI')");
+    if (await feedbackTab.isVisible()) {
+      await feedbackTab.click();
+    }
+    await expect(page).toHaveTitle(/Customer Feedback|Mijoz|RoleCraft/i);
 
     // 2. Verify concise outcome-focused Hero H1 & Subtitle (Raycast & Linear style)
     const heroHeading = page.locator("h1");

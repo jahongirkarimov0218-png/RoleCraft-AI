@@ -91,6 +91,8 @@ export function RoleCraftHeader({ status = "idle" }: RoleCraftHeaderProps) {
               </div>
               <button
                 type="button"
+                aria-label="Yopish"
+                data-testid="close-methodology-modal"
                 onClick={() => setShowMethodologyModal(false)}
                 className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 active:scale-95 transition-[transform,background-color] duration-100"
               >
