@@ -132,5 +132,65 @@
   .animate-modal-enter {
     animation: modalEnter 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
+
+  /* Tactile button bounce */
+  .tactile-btn {
+    transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1), background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out, box-shadow 150ms ease-out;
+  }
+  .tactile-btn:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Print / Clean PDF Export Styles (Lou Adler Enterprise Specification) */
+@media print {
+  @page {
+    margin: 1.5cm;
+    size: A4 portrait;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    line-height: 1.5 !important;
+  }
+
+  header,
+  footer,
+  nav,
+  button,
+  .no-print,
+  [data-no-print],
+  #feedback-workspace,
+  #rolecraft-workspace-form,
+  .rolecraft-presets-bar {
+    display: none !important;
+  }
+
+  .print-clean {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: transparent !important;
+  }
+
+  .print-break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-page-break-before {
+    break-before: page !important;
+    page-break-before: always !important;
+  }
+
+  a {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
 }
 
