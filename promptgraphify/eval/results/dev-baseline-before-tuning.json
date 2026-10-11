@@ -1,0 +1,260 @@
+{
+  "analyzer_version": "0.1.0",
+  "caveats": "Labels were written by the assistant that built the analyzer, from the text alone and before any parser output was looked at; every record is `review_status: unreviewed` and no human has reviewed it. Results show agreement with that reading, not accuracy against independent annotators. `dev` was used to find defects; `holdout` was run once after the dev work was finished. Datasets this small give wide uncertainty: differences of a few points are not evidence.",
+  "dataset_sha256": "6e9aa20a57b6e4538df3a1735144541a605fbc3ea24144b8480cdccb5097a4dd",
+  "deterministic": {
+    "by_language": {
+      "en": {
+        "edges_all_scored_relations": {
+          "f1": 0.8696,
+          "fn": 2,
+          "fp": 1,
+          "precision": 0.9091,
+          "recall": 0.8333,
+          "tp": 10
+        },
+        "nodes_relaxed_type_ignored": {
+          "f1": 0.9873,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.975,
+          "tp": 39
+        },
+        "nodes_strict": {
+          "f1": 0.9873,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.975,
+          "tp": 39
+        }
+      },
+      "ru": {
+        "edges_all_scored_relations": {
+          "f1": 0.6316,
+          "fn": 6,
+          "fp": 1,
+          "precision": 0.8571,
+          "recall": 0.5,
+          "tp": 6
+        },
+        "nodes_relaxed_type_ignored": {
+          "f1": 0.9333,
+          "fn": 5,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.875,
+          "tp": 35
+        },
+        "nodes_strict": {
+          "f1": 0.8533,
+          "fn": 8,
+          "fp": 3,
+          "precision": 0.9143,
+          "recall": 0.8,
+          "tp": 32
+        }
+      },
+      "uz": {
+        "edges_all_scored_relations": {
+          "f1": 0.375,
+          "fn": 9,
+          "fp": 1,
+          "precision": 0.75,
+          "recall": 0.25,
+          "tp": 3
+        },
+        "nodes_relaxed_type_ignored": {
+          "f1": 0.8571,
+          "fn": 10,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.75,
+          "tp": 30
+        },
+        "nodes_strict": {
+          "f1": 0.8,
+          "fn": 12,
+          "fp": 2,
+          "precision": 0.9333,
+          "recall": 0.7,
+          "tp": 28
+        }
+      }
+    },
+    "by_node_type": {
+      "ConstraintNode": {
+        "f1": 0.8214,
+        "fn": 7,
+        "fp": 3,
+        "precision": 0.8846,
+        "recall": 0.7667,
+        "tp": 23
+      },
+      "ContextNode": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "ExampleNode": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 3
+      },
+      "SystemNode": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 24
+      },
+      "TaskNode": {
+        "f1": 0.825,
+        "fn": 12,
+        "fp": 2,
+        "precision": 0.9429,
+        "recall": 0.7333,
+        "tp": 33
+      },
+      "ToolNode": {
+        "f1": 0.8,
+        "fn": 2,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 0.6667,
+        "tp": 4
+      }
+    },
+    "by_relation": {
+      "CALLS_TOOL": {
+        "f1": 0.8,
+        "fn": 2,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 0.6667,
+        "tp": 4
+      },
+      "CONFLICTS_WITH": {
+        "f1": null,
+        "fn": 3,
+        "fp": 0,
+        "precision": null,
+        "recall": 0.0,
+        "tp": 0
+      },
+      "DEPENDS_ON": {
+        "f1": 0.8,
+        "fn": 5,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 0.6667,
+        "tp": 10
+      },
+      "EXEMPLIFIES": {
+        "f1": 0.0,
+        "fn": 3,
+        "fp": 3,
+        "precision": 0.0,
+        "recall": 0.0,
+        "tp": 0
+      },
+      "PRECEDES": {
+        "f1": 0.7143,
+        "fn": 4,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 0.5556,
+        "tp": 5
+      }
+    },
+    "misses": [
+      "dev-en-04: missed TaskNode 'Point out bugs and unclear names.'",
+      "dev-en-06: missed edge EXEMPLIFIES 'Review: The battery died after a day.\\nLabel: negative' -> 'Classify each review as positive, negative or neutral.'",
+      "dev-en-06: extra edge EXEMPLIFIES 'Review: The battery died after a day.\\nLabel: negative' -> 'Output only the label.'",
+      "dev-en-08: missed edge CONFLICTS_WITH 'Always answer in formal English.' -> 'Never use formal language.'",
+      "dev-ru-01: missed ConstraintNode 'Ответ должен быть не длиннее 100 слов.'",
+      "dev-ru-02: missed TaskNode 'Сверь сумму из шага 1 с заказом на закупку.'",
+      "dev-ru-02: missed TaskNode 'Кратко опиши расхождения, найденные на шаге 2.'",
+      "dev-ru-02: extra ConstraintNode 'Кратко опиши расхождения, найденные на шаге 2.'",
+      "dev-ru-02: missed edge DEPENDS_ON 'Кратко опиши расхождения, найденные на шаге 2.' -> 'Сверь сумму из шага 1 с заказом на закупку.'",
+      "dev-ru-02: missed edge DEPENDS_ON 'Сверь сумму из шага 1 с заказом на закупку.' -> 'Извлеки номер счёта и сумму из {{invoice_text}}.'",
+      "dev-ru-02: missed edge PRECEDES 'Извлеки номер счёта и сумму из {{invoice_text}}.' -> 'Сверь сумму из шага 1 с заказом на закупку.'",
+      "dev-ru-02: missed edge PRECEDES 'Сверь сумму из шага 1 с заказом на закупку.' -> 'Кратко опиши расхождения, найденные на шаге 2.'",
+      "dev-ru-04: missed ConstraintNode 'Пиши вежливо.'",
+      "dev-ru-05: missed TaskNode 'Перескажи договор простым языком.'",
+      "dev-ru-05: extra ConstraintNode 'Перескажи договор простым языком.'",
+      "dev-ru-06: missed edge EXEMPLIFIES 'Отзыв: Батарея села за один день.\\nМетка: отрицательная' -> 'Определи тональность каждого отзыва: положительная, отрицательная или нейтральная.'",
+      "dev-ru-06: extra edge EXEMPLIFIES 'Отзыв: Батарея села за один день.\\nМетка: отрицательная' -> 'Выводи только метку.'",
+      "dev-ru-07: missed TaskNode 'Продолжай просить номер заказа, пока пользователь его не назовёт.'",
+      "dev-ru-08: missed ConstraintNode 'Всегда отвечай официальным стилем.'",
+      "dev-ru-08: missed TaskNode 'Перепиши текст пользователя яснее.'",
+      "dev-ru-08: extra TaskNode 'Всегда отвечай официальным стилем.'",
+      "dev-ru-08: missed edge CONFLICTS_WITH 'Всегда отвечай официальным стилем.' -> 'Никогда не используй официальный стиль.'",
+      "dev-uz-01: missed ConstraintNode \"Har bir javob 100 so'zdan oshmasin.\"",
+      "dev-uz-02: missed TaskNode '{{invoice_text}} dan hisob-faktura raqami va summasini ajratib ol.'",
+      "dev-uz-02: missed edge DEPENDS_ON '1-qadamdagi summani xaridga buyurtma bilan solishtir.' -> '{{invoice_text}} dan hisob-faktura raqami va summasini ajratib ol.'",
+      "dev-uz-02: missed edge DEPENDS_ON '2-qadamda topilgan nomuvofiqliklarni qisqacha tasvirlab ber.' -> '1-qadamdagi summani xaridga buyurtma bilan solishtir.'",
+      "dev-uz-02: missed edge DEPENDS_ON '{{invoice_text}} dan hisob-faktura raqami va summasini ajratib ol.' -> '{{invoice_text}}'",
+      "dev-uz-02: missed edge PRECEDES '{{invoice_text}} dan hisob-faktura raqami va summasini ajratib ol.' -> '1-qadamdagi summani xaridga buyurtma bilan solishtir.'",
+      "dev-uz-03: missed ToolNode 'search_flights'",
+      "dev-uz-03: missed TaskNode 'Keyin eng arzon variant uchun book_hotel ni chaqir.'",
+      "dev-uz-03: missed ToolNode 'book_hotel'",
+      "dev-uz-03: missed edge CALLS_TOOL 'Keyin eng arzon variant uchun book_hotel ni chaqir.' -> 'book_hotel'",
+      "dev-uz-03: missed edge CALLS_TOOL '{{trip_dates}} sanalari uchun reyslarni topishda search_flights vositasidan foydalan.' -> 'search_flights'",
+      "dev-uz-03: missed edge PRECEDES '{{trip_dates}} sanalari uchun reyslarni topishda search_flights vositasidan foydalan.' -> 'Keyin eng arzon variant uchun book_hotel ni chaqir.'",
+      "dev-uz-04: missed TaskNode \"Xatolar va tushunarsiz nomlarni ko'rsat.\"",
+      "dev-uz-04: missed ConstraintNode \"Faylni to'liq qayta yozma.\"",
+      "dev-uz-04: missed ConstraintNode 'Xushmuomala ohangda yoz.'",
+      "dev-uz-04: extra TaskNode 'Xushmuomala ohangda yoz.'",
+      "dev-uz-05: missed TaskNode 'Shartnomani oddiy tilda bayon qil.'",
+      "dev-uz-05: missed ConstraintNode 'Huquqiy maslahat berma.'",
+      "dev-uz-05: extra ConstraintNode 'Shartnomani oddiy tilda bayon qil.'",
+      "dev-uz-06: missed TaskNode 'Har bir sharhni ijobiy, salbiy yoki neytral deb tasniflang.'",
+      "dev-uz-06: missed edge EXEMPLIFIES 'Sharh: Batareya bir kunda tugadi.\\nYorliq: salbiy' -> 'Har bir sharhni ijobiy, salbiy yoki neytral deb tasniflang.'",
+      "dev-uz-06: extra edge EXEMPLIFIES 'Sharh: Batareya bir kunda tugadi.\\nYorliq: salbiy' -> 'Faqat yorliqni chiqaring.'",
+      "dev-uz-07: missed TaskNode \"Foydalanuvchi buyurtma raqamini aytmaguncha uni so'rashda davom et.\"",
+      "dev-uz-08: missed edge CONFLICTS_WITH 'Doimo rasmiy uslubda javob ber.' -> 'Hech qachon rasmiy uslubdan foydalanma.'"
+    ],
+    "overall": {
+      "edges_all_scored_relations": {
+        "f1": 0.6552,
+        "fn": 17,
+        "fp": 3,
+        "precision": 0.8636,
+        "recall": 0.5278,
+        "tp": 19
+      },
+      "nodes_relaxed_type_ignored": {
+        "f1": 0.9286,
+        "fn": 16,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 0.8667,
+        "tp": 104
+      },
+      "nodes_strict": {
+        "f1": 0.8839,
+        "fn": 21,
+        "fp": 5,
+        "precision": 0.9519,
+        "recall": 0.825,
+        "tp": 99
+      }
+    },
+    "records": 24
+  },
+  "llm": {
+    "reason": "Not requested (pass --llm).",
+    "status": "not run"
+  },
+  "records": 24,
+  "split": "dev"
+}

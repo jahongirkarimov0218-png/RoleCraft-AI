@@ -36,17 +36,28 @@ def _clause_candidates(text: str) -> list[str]:
     cands = [text]
     if toks and "," in text:
         first = toks[0][0]
-        opener = first in SIGNALS.condition_words or first in SIGNALS.prefix_words or first in ("to", "by")
+        opener = first in SIGNALS.condition_words or _skippable(first) or first in ("to", "by")
         if opener or first.endswith("ing"):
             cands.insert(0, text[text.index(",") + 1 :])
     return cands
+
+
+def _skippable(word: str) -> bool:
+    """A word that may stand before the imperative verb: a prefix word ("please", "then") or an English manner
+    adverb ("briefly summarize", "carefully review"). A word ending in -ly is an adverb unless it is a known verb
+    ("reply", "apply", "comply", "rely")."""
+    if word in SIGNALS.prefix_words:
+        return True
+    return len(word) > 4 and word.endswith("ly") and not any(
+        word in v["strict"] or word in v["task"] for v in SIGNALS.verbs.values()
+    )
 
 
 def find_verb(text: str) -> Verb | None:
     for clause in _clause_candidates(text):
         toks = words(clause)
         i = 0
-        while i < len(toks) and toks[i][0] in SIGNALS.prefix_words:
+        while i < len(toks) and _skippable(toks[i][0]):
             i += 1
         if i < len(toks):
             w = toks[i][0]

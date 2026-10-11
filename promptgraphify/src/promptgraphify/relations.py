@@ -705,7 +705,10 @@ def _link_examples(sources, drafts, emit) -> None:
         if home is None:
             prior = [a for a in anchors if a.file == ex.file and a.span[1] <= ex.span[0]]
         if prior:
-            near = max(prior, key=lambda a: a.span[1])
+            # An example normally demonstrates what to do, so the nearest preceding task wins; only if no task
+            # precedes it does the nearest preceding constraint (D-022).
+            tasks_before = [a for a in prior if a.type == "TaskNode"]
+            near = max(tasks_before or prior, key=lambda a: a.span[1])
             emit(
                 ex,
                 near,

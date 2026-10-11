@@ -266,7 +266,12 @@
   "validate",
   "verify",
   "wait",
-  "welcome"
+  "welcome",
+  "point",
+  "pinpoint",
+  "locate",
+  "spot",
+  "mark"
  ],
  "task_verbs": [
   "act",

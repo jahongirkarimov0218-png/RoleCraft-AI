@@ -129,7 +129,7 @@ of its evidence spans (a name, a placeholder, a step marker). **INFERRED** needs
 | OVERRIDES | text says it takes precedence over / replaces a **named** target | EXTRACTED |
 | CONFLICTS_WITH (symmetric; source = earlier span) | same predicate with opposite polarity (`always X` / `never X`) | INFERRED `conflict.polarity` 0.7, or AMBIGUOUS on partial lexical overlap |
 | EXEMPLIFIES Example→Task/Constraint/Tool | example block names its target (`<example for="…">`, `Example of rule 2`) | EXTRACTED |
-| EXEMPLIFIES Example→Task/Constraint | nearest preceding unit of that type in the same container | INFERRED `proximity.preceding` 0.55 |
+| EXEMPLIFIES Example→Task/Constraint | nearest preceding **TaskNode** in the same container; only if no task precedes it, the nearest preceding constraint (D-022) | INFERRED `proximity.preceding` 0.55 |
 | CONDITIONALLY_EXECUTES Context/Task→Task | the unit has an explicit condition (`if`, `когда`, `agar`); the condition mentions a variable (→ that Context) or a step (→ that Task); `metadata.condition` = the condition text; conditions that name nothing leave only `metadata.condition` on the node | EXTRACTED |
 
 **Scope.** A constraint's *scope container* is its nearest ancestor container that is not a

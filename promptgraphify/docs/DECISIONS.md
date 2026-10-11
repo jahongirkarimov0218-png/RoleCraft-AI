@@ -154,3 +154,23 @@ strictly (a wrong `schema_version` is exit 4, never silently analysed as a promp
 own directory, only regular files are opened (never a FIFO), limits are errors not silent cuts, files must be
 strict UTF-8 without NUL, an output file never overwrites an input. `serve` binds 127.0.0.1 by default.
 Reason: scripts and CI need stable codes; "never guess a name" is the spec. Status: accepted.
+
+## D-022 · Changes made after the first evaluation run (dev split)
+The first run on `eval/dataset/dev.jsonl` (24 hand-labelled records, `eval/results/dev-baseline-before-tuning.*`)
+gave nodes P 95.2 % / R 82.5 %, edges P 86.4 % / R 52.8 %; English was near-perfect, Russian and Uzbek lost recall.
+Changes, each general rather than specific to a dev record, each with a regression test:
+1. **Russian and Uzbek verb lists widened** to the breadth of the English ones (~175 and ~140 imperatives, in
+   singular, polite/plural and imperfective forms) plus tone, limit and negative-imperative patterns. FACT before:
+   28+14 (ru) and 29+18 (uz) verbs against 192+76 for English. Caveat: the holdout texts already existed when the
+   lists were widened, so independence of the holdout is partial.
+2. **Manner adverbs no longer hide the verb**: "Briefly summarize …" and "Carefully review …" were *completely
+   uncovered* in English (found while investigating a Russian miss). A leading word ending in `-ly` is skipped
+   unless it is a known verb (`reply`, `apply`, `comply`, `rely`); Russian/Uzbek adverbs are in `prefix_words`.
+3. **Uzbek verb-final tool mentions** ("`book_hotel` ni chaqir"), case-suffixed `vositasidan`, step references with
+   suffixes ("1-qadamdagi") and `-guncha` stop clauses; `chiqar` is a response verb like English `output`.
+4. **`EXEMPLIFIES` anchors to the nearest preceding task** (only if none, the nearest constraint): an example
+   demonstrates what to do. This is a design judgement that matches the annotator's convention (same author), not
+   a measured improvement in independent agreement. Spec §5 updated.
+Not changed: `CONFLICTS_WITH` between two constraints that share only one content word ("Always answer in formal
+English" / "Never use formal language") stays unfound: a third, looser tier would flag unrelated pairs. All three dev
+conflicts of that kind remain misses; the optional LLM layer is the intended tool for them. Status: accepted.
