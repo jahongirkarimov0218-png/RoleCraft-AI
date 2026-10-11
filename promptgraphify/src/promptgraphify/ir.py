@@ -172,7 +172,6 @@ class ToolInfo(_Model):
 
 class AnalysisConfig(_Model):
     layer_b: bool = False  # optional LLM extraction; off by default
-    max_input_chars: int = 500_000
 
 
 class GraphDocument(_Model):

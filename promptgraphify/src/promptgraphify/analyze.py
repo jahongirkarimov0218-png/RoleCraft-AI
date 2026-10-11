@@ -32,6 +32,7 @@ from .spans import Span
 from .validate import assert_valid
 
 LABEL_CHARS = 80
+DEFAULT_MAX_INPUT_CHARS = 500_000
 TYPE_ORDER = {
     t: i for i, t in enumerate(("SystemNode", "TaskNode", "ContextNode", "ConstraintNode", "ToolNode", "ExampleNode"))
 }
@@ -168,13 +169,19 @@ def _edge_sort(ids: dict[int, str]):
     return key
 
 
-def analyze(inputs: Mapping[str, str] | list[tuple[str, str]], config: AnalysisConfig | None = None) -> GraphDocument:
+def analyze(
+    inputs: Mapping[str, str] | list[tuple[str, str]],
+    config: AnalysisConfig | None = None,
+    *,
+    max_input_chars: int = DEFAULT_MAX_INPUT_CHARS,
+) -> GraphDocument:
+    """Analyse ``inputs`` ({path: text}). ``max_input_chars`` is a runtime guard, not part of the result."""
     config = config or AnalysisConfig()
     pairs = sorted(dict(inputs).items() if isinstance(inputs, Mapping) else inputs)
     if not pairs:
         raise AnalysisError("no_input", "no input files")
-    if sum(len(t) for _, t in pairs) > config.max_input_chars:
-        raise AnalysisError("input_too_large", f"input exceeds {config.max_input_chars} characters")
+    if sum(len(t) for _, t in pairs) > max_input_chars:
+        raise AnalysisError("input_too_large", f"input exceeds {max_input_chars} characters")
     if len({p for p, _ in pairs}) != len(pairs):
         raise AnalysisError("duplicate_path", "two inputs share a path")
 

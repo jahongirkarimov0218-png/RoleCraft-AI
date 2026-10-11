@@ -135,7 +135,7 @@ def test_limits_and_degenerate_inputs():
     with pytest.raises(AnalysisError):
         analyze({})
     with pytest.raises(AnalysisError, match="exceeds"):
-        analyze({"p.txt": "x" * 20}, AnalysisConfig(max_input_chars=10))
+        analyze({"p.txt": "x" * 20}, max_input_chars=10)
     for text in ("", "   \n\t", "\n" * 50, "﻿", "\r\n\r\n"):
         doc = analyze({"p.txt": text})
         assert doc.nodes == [] and validate_document(doc) == []
