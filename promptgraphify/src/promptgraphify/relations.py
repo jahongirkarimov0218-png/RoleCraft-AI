@@ -362,7 +362,7 @@ def _link_tools(sources, drafts, emit, findings) -> list[Draft]:
                     meta={"candidates": []},
                     method="deterministic:tool.unresolved",
                 )
-                findings.append(Finding("undefined_tool", unit.file, span, f"{name} is called but never defined", unit))
+                findings.append(Finding("undefined_tool", unit.file, span, f"{name} is called but never defined", tool))
         elif unit.type == "ConstraintNode":
             emit(
                 unit,

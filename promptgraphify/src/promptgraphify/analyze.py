@@ -12,7 +12,9 @@ import json
 from collections.abc import Mapping
 
 from . import __version__
+from .analyzer import Facts, run_analyzer
 from .coverage import compute_coverage
+from .dag import build_dag
 from .extract import Draft, SourceData, extract_source
 from .ids import disambiguate, edge_id, named_key, node_id, text_key
 from .ir import (
@@ -25,7 +27,7 @@ from .ir import (
     RoleScope,
     SourceFile,
     ToolInfo,
-    empty_dag,
+    UnresolvedDependency,
 )
 from .ontology import RELATIONS
 from .relations import DraftEdge, Linked, link
@@ -196,6 +198,21 @@ def analyze(
     nodes = [_node(d, ids[id(d)]) for d in drafts]
     edges = _edges(linked, ids, texts)
 
+    findings = [(f, ids.get(id(f.draft)) if f.draft is not None else None) for f in linked.findings]
+    unresolved = [
+        UnresolvedDependency(
+            node_id=nid,
+            reference=texts[f.file][f.span[0] : f.span[1]],
+            evidence=Evidence(
+                source_file=f.file, span=Span(start=f.span[0], end=f.span[1]), text=texts[f.file][f.span[0] : f.span[1]]
+            ),
+        )
+        for f, nid in findings
+        if f.kind == "unresolved_step" and nid
+    ]
+    dag = build_dag(nodes, edges, unresolved)
+    diagnostics = run_analyzer(Facts(nodes, edges, dag, texts, findings, unresolved))
+
     coverage = []
     for s in sources:
         spans = [n.source_span for n in nodes if n.source_file == s.path]
@@ -211,8 +228,8 @@ def analyze(
         nodes=nodes,
         edges=edges,
         coverage=coverage,
-        diagnostics=[],
-        dag=empty_dag(),
+        diagnostics=diagnostics,
+        dag=dag,
         warnings=[],
     )
     assert_valid(doc)

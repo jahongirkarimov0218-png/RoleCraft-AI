@@ -68,6 +68,7 @@ def validate_document(doc: GraphDocument) -> list[Violation]:
     edges = _check_edges(doc, nodes, sources, out)
     _check_diagnostics(doc, nodes, edges, sources, out)
     _check_coverage(doc, sources, out)
+    _check_dag(doc, nodes, edges, sources, out)
     return out
 
 
@@ -272,3 +273,95 @@ def _check_coverage(doc: GraphDocument, sources: dict, out: list[Violation]) -> 
                     path,
                 )
             )
+
+
+# --------------------------------------------------------------------------------------------------- DAG
+def _check_dag(
+    doc: GraphDocument, nodes: dict[str, Node], edges: dict[str, Edge], sources: dict, out: list[Violation]
+) -> None:
+    dag = doc.dag
+    vset = set(dag.vertices)
+    for v in dag.vertices:
+        if v not in nodes:
+            out.append(Violation("dag.vertex_unknown", f"vertex {v!r} is not a node", v))
+    if len(vset) != len(dag.vertices):
+        out.append(Violation("dag.vertex_duplicate", "a vertex is listed twice"))
+
+    def arrow_ok(a, label: str) -> bool:
+        ok = a.source in vset and a.target in vset and a.graph_edge in edges
+        if not ok:
+            out.append(
+                Violation(
+                    "dag.edge_invalid",
+                    f"{label}: arrow {a.source!r} -> {a.target!r} ({a.graph_edge}) is not backed by the graph",
+                    a.graph_edge,
+                )
+            )
+        return ok
+
+    pairs = {(a.source, a.target) for a in dag.edges if arrow_ok(a, "edges")}
+    if dag.status == "ok":
+        order = dag.topological_order
+        if sorted(order) != sorted(vset) or len(order) != len(vset):
+            out.append(Violation("dag.order_not_permutation", "topological_order must list every vertex once"))
+        else:
+            pos = {v: i for i, v in enumerate(order)}
+            for u, v in pairs:
+                if pos[u] >= pos[v]:
+                    out.append(Violation("dag.order_violated", f"{u!r} must come before {v!r}"))
+        path = dag.critical_path
+        if path and not all((a, b) in pairs for a, b in zip(path, path[1:], strict=False)):
+            out.append(Violation("dag.critical_path", "critical_path is not a path of the DAG"))
+        if dag.cycles:
+            out.append(Violation("dag.status", "an 'ok' DAG cannot list cycles"))
+    elif dag.status == "blocked":
+        if not dag.cycles:
+            out.append(Violation("dag.status", "a blocked DAG must explain itself with at least one cycle"))
+        if dag.topological_order or dag.critical_path:
+            out.append(Violation("dag.status", "a blocked DAG must not present an order or critical path"))
+        if dag.acyclic_subgraph is not None:
+            sub = {(a.source, a.target) for a in dag.acyclic_subgraph if arrow_ok(a, "acyclic_subgraph")}
+            if _has_cycle(sub):
+                out.append(Violation("dag.subgraph_cyclic", "acyclic_subgraph still contains a cycle"))
+    elif dag.vertices:
+        out.append(Violation("dag.status", "an 'empty' DAG has vertices"))
+    for c in dag.cycles:
+        if not set(c.nodes) <= vset or not set(c.edges) <= set(edges):
+            out.append(Violation("dag.cycle_invalid", "a cycle names unknown nodes or edges"))
+        _check_evidence(c.evidence, sources, "dag.cycle", "dag", out)
+    for u in dag.unresolved:
+        if u.node_id not in nodes:
+            out.append(Violation("dag.unresolved_unknown", f"unresolved dependency of unknown node {u.node_id!r}"))
+        _check_evidence([u.evidence], sources, "dag.unresolved", "dag", out)
+    for lid in dag.loops:
+        if lid not in edges or edges[lid].metadata.get("loop") is not True:
+            out.append(Violation("dag.loop_invalid", f"loop {lid!r} is not an edge marked loop", lid))
+    for rid in dag.removed_for_acyclic:
+        if rid not in edges:
+            out.append(Violation("dag.removed_unknown", f"removed edge {rid!r} does not exist", rid))
+
+
+def _has_cycle(pairs: set[tuple[str, str]]) -> bool:
+    graph: dict[str, list[str]] = {}
+    for u, v in pairs:
+        graph.setdefault(u, []).append(v)
+    state: dict[str, int] = {}
+    for root in list(graph):
+        if state.get(root):
+            continue
+        stack = [(root, iter(graph.get(root, [])))]
+        state[root] = 1
+        while stack:
+            node, it = stack[-1]
+            for nxt in it:
+                st = state.get(nxt, 0)
+                if st == 1:
+                    return True
+                if st == 0:
+                    state[nxt] = 1
+                    stack.append((nxt, iter(graph.get(nxt, []))))
+                    break
+            else:
+                state[node] = 2
+                stack.pop()
+    return False

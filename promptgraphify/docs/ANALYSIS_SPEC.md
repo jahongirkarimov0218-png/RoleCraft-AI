@@ -177,7 +177,7 @@ Metrics (always shipped with their definition string): *topological order* — K
 ready vertex with the smallest (source offset, id); *critical path* — longest path by vertex count (unit weight) = longest chain of
 prerequisites, **not** time; among equal-length paths the one whose vertex offsets are
 lexicographically smallest; *bottleneck* — vertex with the largest share of all source-to-sink paths
-passing through it (path-dominance), reported only if the share ≥ 0.5 and the graph has ≥ 3 vertices;
+passing through it (path-dominance), reported only if the share is > 0.5, the graph has ≥ 3 vertices and is not a single chain;
 *most dependencies* — vertex with most ancestors in the DAG (transitive prerequisites) and, separately,
 most direct DEPENDS_ON edges.
 
