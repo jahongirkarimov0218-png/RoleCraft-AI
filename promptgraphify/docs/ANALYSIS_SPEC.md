@@ -68,6 +68,11 @@ Applied top to bottom; the first match wins; `confidence` is the rule's document
       `brief`, language names, `confidential`) → **ConstraintNode**
    e. any other imperative / obligation with a task verb (`answer`, `reply`, `write`, `use`, `follow`,
       `provide`, `javob ber`, `ответь`, …) → **TaskNode**
+      A *modal opener* before the verb is skipped for the lookup only (English): `You must`, `The assistant should`,
+      `You will`, `Your task is to`, `I want you to`, `It is important to`, `You are required to`. The node still spans
+      the whole sentence. Without a task verb after the opener ("You must be kind.") or with another subject
+      ("The user must provide a name.") there is no node and the sentence stays uncovered. Russian and Uzbek have no
+      opener list: their verb lists hold imperatives, not infinitives (limitation).
    f. none of the above → not a node; the sentence is **uncovered** and reported as such.
    (Strict verbs describe *what to do*; response verbs describe *how to answer*, so
    "Reply in a polite tone." is a constraint but "Answer the question using the knowledge base." is a

@@ -55,9 +55,16 @@ def _skippable(word: str) -> bool:
     )
 
 
+def _without_opener(clause: str) -> str:
+    """``clause`` without a leading modal opener ("You must", "Your task is to", "I want you to"): the verb that
+    follows it is the instruction. Only the lookup is shortened; the node keeps the whole sentence."""
+    hit = SIGNALS.find("modal_opener", clause.lstrip())
+    return clause.lstrip()[hit.end :] if hit and hit.start == 0 else clause
+
+
 def find_verb(text: str) -> Verb | None:
     for clause in _clause_candidates(text):
-        toks = words(clause)
+        toks = words(_without_opener(clause))
         i = 0
         while i < len(toks) and _skippable(toks[i][0]):
             i += 1

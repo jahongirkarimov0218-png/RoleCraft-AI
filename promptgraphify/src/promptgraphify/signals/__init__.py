@@ -104,7 +104,7 @@ class SignalSet:
 _REGEX_CATEGORIES = {
     "identity", "hierarchy", "prohibition", "limit", "format", "output_spec", "sequence_words", "loop", "loop_back",
     "stop", "step_ref", "produce_before", "produce_after", "handoff", "call_verbs", "tool_mention", "vague",
-    "injection", "success", "context_missing", "obligation",
+    "injection", "success", "context_missing", "obligation", "modal_opener",
 }  # fmt: skip
 
 

@@ -2,12 +2,19 @@
  "language": "en",
  "verb_position": "start",
  "identity": [
-  "^you are\\b",
+  "^you are\\b(?!\\s+(?:required|expected|asked|supposed|going|to|not allowed|not permitted)\\b)",
   "^you're\\b",
   "^act as\\b",
   "^your role is\\b",
   "^you will act as\\b",
   "^take the role of\\b"
+ ],
+ "modal_opener": [
+  "^(?:you|the (?:assistant|model|ai|agent|bot|chatbot))\\s+(?:must|should|shall|will|need to|needs to|have to|has to)\\b",
+  "^your (?:task|job|goal|objective|mission|assignment) is to\\b",
+  "^(?:i|we) (?:want|need|would like|expect|ask) you to\\b",
+  "^it is (?:important|essential|necessary|crucial|vital|required) to\\b",
+  "^you are (?:required|expected|asked|supposed|going) to\\b"
  ],
  "hierarchy": [
   "\\btakes? precedence (?:over|above)\\b",
@@ -27,7 +34,8 @@
   "\\bforbidden\\b",
   "\\bprohibited\\b",
   "\\bavoid\\b",
-  "\\bunder no circumstances\\b"
+  "\\bunder no circumstances\\b",
+  "\\bnot (?:allowed|permitted)\\b"
  ],
  "limit": [
   "\\bat most\\b",

@@ -200,3 +200,19 @@ are at least 24x24 px outside the graph surface. Fit view can zoom to 0.02 so a 
 Limitation: axe cannot judge reading order or the meaning of labels, and the graph canvas itself (SVG) is navigable by
 keyboard only through the node list; there was no screen-reader test with a real assistive technology.
 Status: accepted.
+
+## D-025 · Modal openers (found by the final red-team pass, after the one-time holdout run)
+Probing odd prompts by hand showed that "You must cite sources.", "Your task is to summarize the document." and "I want
+you to ..." produced no node at all, although the spec counts an obligation with a task verb as a task (§3.5e) and
+"Your task is to" is among the most common prompt openers. The 48 evaluation records contain none of these phrasings:
+the evaluation shares its author's blind spots, so a high score did not reveal the gap.
+Fix (data, not code paths): a `modal_opener` list in `signals/en.json`; `classify.find_verb` skips a leading opener when
+looking for the verb. `^you are` no longer matches "You are required/expected/going to ..." (it was read as an
+identity); `not allowed` / `not permitted` are prohibition signals. Tests: `tests/test_modal_openers.py` (26, each
+behaviour has a negative case; mutation-checked).
+Effect on the recorded evaluation: **none**. The analysis of all 48 evaluation records (dev and holdout) was compared
+before and after the change (node type and span sets): identical. `eval/results/holdout.*` therefore still describes the
+current analyzer, and the holdout was not re-run.
+Not done: Russian and Uzbek openers ("Ты должен ...", "Siz ... kerak"): their verb lists hold imperatives, not
+infinitives or verbal nouns. Known limitation.
+Status: accepted.
