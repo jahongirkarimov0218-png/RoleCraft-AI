@@ -142,3 +142,12 @@ def test_every_listed_dependency_cites_evidence():
     r = d(OLD, OLD.replace("3. Summarize step 2.", "3. Summarize step 2 and {{extra}}."))
     for c in r.dependencies:
         assert c.evidence
+
+
+def test_rewording_a_step_on_the_critical_path_does_not_change_the_sequence():
+    new = OLD.replace("3. Summarize step 2.", "3. Summarize the result of step 2.")
+    r = d(OLD, new)
+    (pair,) = r.probably_modified
+    assert pair.old.original_text == "Summarize step 2." and pair.new.original_text == "Summarize the result of step 2."
+    assert not r.sequence.changed and r.sequence.moved == [] and r.sequence.note == "order unchanged"
+    assert r.sequence.old_critical_path != r.sequence.new_critical_path  # the labels differ, the vertices do not

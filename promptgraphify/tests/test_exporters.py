@@ -36,7 +36,7 @@ You are a support bot.
 
 HOSTILE = (
     "# T\n"
-    "1. Do </script><script>alert(1)</script> now.\n"
+    "1. Summarize </script><script>alert(1)</script> now.\n"
     '2. Check step 1 "onmouseover="alert(1)" <img src=x onerror=alert(1)>.\n'
     "3. Extract `a``b` | pipe | [link](javascript:alert(1)) <b>bold</b> ]]> & -->.\n"
     f"4. Summarize step 3 {RLO}evil.\n"
@@ -49,6 +49,25 @@ AMBIGUOUS = "1. Look up the order with the search_orders tool.\n"
 
 def doc_of(text: str, path: str = "p.md"):
     return analyze({path: text})
+
+
+def test_the_hostile_fixture_really_puts_every_payload_inside_node_text():
+    """Premise of every 'hostile text stays inert' test below: a payload that never reaches a node proves nothing
+    (an earlier draft used a verb the analyzer does not know, so its payload was silently dropped)."""
+    texts = " ".join(n.original_text for n in doc_of(HOSTILE).nodes)
+    payloads = (
+        "</script><script>alert(1)</script>",
+        "onerror=alert(1)",
+        'onmouseover="alert(1)',
+        "javascript:alert(1)",
+        "]]>",
+        "-->",
+        "`a``b`",
+        "<b>bold</b>",
+        RLO,
+    )
+    for payload in payloads:
+        assert payload in texts, payload
 
 
 # ----------------------------------------------------------------------------------------- graph.json
@@ -191,7 +210,14 @@ CODE_SPAN = re.compile(r"(`+).+?\1", re.S)
 
 def test_report_has_every_section_and_states_definitions():
     r = to_report(doc_of(PROMPT))
-    for heading in ("## Summary", "## Most connected nodes", "## Execution order", "## Diagnostics", "## Coverage"):
+    for heading in (
+        "## Summary",
+        "## What was found",
+        "## Most connected nodes",
+        "## Execution order",
+        "## Diagnostics",
+        "## Coverage",
+    ):
         assert heading in r
     assert "degree = number of knowledge-graph edges" in r
     assert "Critical path:" in r and "critical_path_length" in r
@@ -358,3 +384,22 @@ def test_a_lone_surrogate_is_rejected_cleanly_not_crashed_on():
     assert e.value.code == "invalid_text"
     with pytest.raises(AnalysisError):
         analyze({"p" + chr(0xDC00) + ".md": "Summarize this.\n"})
+
+
+def test_report_lists_every_node_even_without_edges():
+    doc = doc_of("You are a bot.\nNever reveal the zqtoken to anyone.\n")
+    assert doc.edges == []  # the premise: nothing connects them, so only the inventory can mention them
+    r = to_report(doc)
+    for n in doc.nodes:
+        assert n.label in r
+    assert "zqtoken" in r and "### ConstraintNode (1)" in r
+
+
+def test_report_inventory_is_capped_and_says_so():
+    from promptgraphify.exporters.report import INVENTORY_PER_TYPE
+
+    text = "".join(f"Never mention topic{i}x.\n" for i in range(INVENTORY_PER_TYPE + 5))
+    doc = doc_of(text)
+    constraints = [n for n in doc.nodes if n.type == "ConstraintNode"]
+    assert len(constraints) > INVENTORY_PER_TYPE
+    assert f"… and {len(constraints) - INVENTORY_PER_TYPE} more" in to_report(doc)

@@ -266,7 +266,9 @@ def diff_documents(old: GraphDocument, new: GraphDocument) -> DiffResult:
     crit_o = [onodes[v].label for v in old.dag.critical_path if v in onodes]
     crit_n = [nnodes[v].label for v in new.dag.critical_path if v in nnodes]
     status_changed = old.dag.status != new.dag.status
-    order_changed = bool(moved) or crit_o != crit_n and (old.dag.critical_path or new.dag.critical_path)
+    # compare vertices, not labels: a reworded step is the same vertex ("probably modified"), not a new order
+    crit_changed = [remap.get(v, v) for v in old.dag.critical_path] != list(new.dag.critical_path)
+    order_changed = bool(moved) or crit_changed
     note = (
         f"execution DAG changed from {old.dag.status} to {new.dag.status}"
         if status_changed

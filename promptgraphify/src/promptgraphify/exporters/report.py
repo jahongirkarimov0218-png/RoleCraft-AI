@@ -11,6 +11,7 @@ from ..security import sanitize_label
 
 DEGREE_DEFINITION = "degree = number of knowledge-graph edges that start or end at the node (a self-loop counts once)."
 TOP_N = 10
+INVENTORY_PER_TYPE = 50
 
 
 def _code(text: str, limit: int = 120) -> str:
@@ -87,6 +88,20 @@ def to_report(doc: GraphDocument) -> str:
     )
     out.append(f"- Execution DAG: {doc.dag.status}")
     out.append("")
+
+    # --- inventory
+    out += ["## What was found", ""]
+    if not doc.nodes:
+        out += ["No instruction, context, constraint, tool or example was recognised.", ""]
+    for node_type in sorted({n.type for n in doc.nodes}):
+        members = sorted(
+            (n for n in doc.nodes if n.type == node_type), key=lambda n: (n.source_file, n.source_span.start)
+        )
+        out += [f"### {node_type} ({len(members)})", ""]
+        out += [f"- {_code(n.label)} — {_where(n)}" for n in members[:INVENTORY_PER_TYPE]]
+        if len(members) > INVENTORY_PER_TYPE:
+            out.append(f"- … and {len(members) - INVENTORY_PER_TYPE} more (all of them are in graph.json)")
+        out.append("")
 
     # --- most connected
     out += ["## Most connected nodes", "", f"_{DEGREE_DEFINITION}_", ""]

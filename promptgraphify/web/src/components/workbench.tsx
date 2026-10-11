@@ -13,6 +13,7 @@ import { FilterBar } from "@/components/filter-bar";
 import { DiagnosticsPanel } from "@/components/diagnostics-panel";
 import { QueriesPanel } from "@/components/queries-panel";
 import { DagPanel } from "@/components/dag-panel";
+import { ExportMenu } from "@/components/export-menu";
 import { analyze, ApiError, health, type HealthInfo } from "@/lib/api";
 import { dagView, knowledgeView, matchesSearch, nodeAtOffset, type Filters } from "@/lib/graph-view";
 import { buildOffsetIndex, type OffsetIndex } from "@/lib/offsets";
@@ -245,6 +246,7 @@ export function Workbench() {
         </Button>
         <span className="hidden text-xs text-muted sm:inline">Ctrl/Cmd + Enter</span>
         <div className="ml-auto flex items-center gap-2">
+          <ExportMenu graphId={doc?.graph_id ?? null} />
           {info?.llm_enabled ? (
             <Badge tone="warn" data-testid="llm-badge">
               <TriangleAlert className="mr-1 size-3" aria-hidden /> LLM layer ON: prompt text is sent to {info.llm_provider ?? "the provider"}
