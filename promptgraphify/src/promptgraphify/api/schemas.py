@@ -6,9 +6,9 @@ from __future__ import annotations
 import re
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from ..ir import GraphDocument
+from ..ir import Diagnostic, Edge, GraphDocument, Node
 
 _BAD_PATH = re.compile(r"[\x00-\x1f\x7f\\]")
 
@@ -84,4 +84,44 @@ class Health(_Strict):
     version: str
     schema_version: str
     llm_enabled: bool = Field(description="True only if an LLM provider is configured and Layer B is allowed.")
-    llm_provider: str | None = None
+    llm_provider: str | None
+
+
+class NodeDetail(_Strict):
+    node: Node
+    incoming: list[Edge]
+    outgoing: list[Edge]
+    diagnostics: list[Diagnostic]
+
+
+class ViolationOut(_Strict):
+    code: str
+    message: str
+    subject: str | None
+
+
+class SeverityCounts(_Strict):
+    error: int
+    warning: int
+    info: int
+
+
+class ValidateRequest(_Strict):
+    """Either analyse ``files`` or check an existing ``graph`` document (exactly one)."""
+
+    files: list[FileInput] | None = Field(default=None, min_length=1, max_length=200)
+    graph: GraphDocument | None = None
+
+    @model_validator(mode="after")
+    def _one_of(self) -> ValidateRequest:
+        if (self.files is None) == (self.graph is None):
+            raise ValueError("give exactly one of 'files' or 'graph'")
+        return self
+
+
+class ValidateResponse(_Strict):
+    ok: bool = Field(description="False if the graph is invalid or any diagnostic has severity 'error'.")
+    graph_id: str | None
+    violations: list[ViolationOut]
+    diagnostics: list[Diagnostic]
+    counts: SeverityCounts

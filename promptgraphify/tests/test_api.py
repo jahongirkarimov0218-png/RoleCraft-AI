@@ -5,6 +5,7 @@ from promptgraphify import graphjson
 from promptgraphify.analyze import analyze
 from promptgraphify.api.app import Settings, create_app
 from promptgraphify.api.schemas import ErrorResponse, normalize_input_path
+from promptgraphify.storage import SqliteGraphStore
 from promptgraphify.ir import GraphDocument
 
 PROMPT = (
@@ -15,7 +16,8 @@ PROMPT = (
 
 @pytest.fixture()
 def client():
-    return TestClient(create_app(Settings(max_request_bytes=20_000, max_input_chars=5_000, analyze_timeout_s=10)))
+    settings = Settings(max_request_bytes=20_000, max_input_chars=5_000, analyze_timeout_s=10)
+    return TestClient(create_app(settings, SqliteGraphStore(":memory:")))
 
 
 def post(client, files, **extra):

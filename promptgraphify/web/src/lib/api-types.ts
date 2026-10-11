@@ -21,6 +21,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/graph/{graph_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** A stored graph */
+        get: operations["get_graph_api_graph__graph_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/graph/{graph_id}/node/{node_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One node with its edges and diagnostics */
+        get: operations["get_node_api_graph__graph_id__node__node_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/graph/{graph_id}/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Shortest path between two nodes (query 'shortest_path') */
+        get: operations["get_path_api_graph__graph_id__path_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/graph/{graph_id}/query/{name}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Run a named query; parameters are query-string arguments */
+        get: operations["get_query_api_graph__graph_id__query__name__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -32,6 +100,40 @@ export interface paths {
         get: operations["health_api_health_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/queries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The named queries */
+        get: operations["list_queries_api_queries_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Validate a graph or lint prompt files: schema invariants plus analyzer diagnostics */
+        post: operations["post_validate_api_validate_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -193,6 +295,21 @@ export interface components {
             /** Target */
             target: string;
         };
+        /** EdgeRef */
+        EdgeRef: {
+            /** Id */
+            id: string;
+            /** Rationale */
+            rationale: string;
+            /** Relation */
+            relation: string;
+            /** Source */
+            source: string;
+            /** Status */
+            status: string;
+            /** Target */
+            target: string;
+        };
         /** ErrorBody */
         ErrorBody: {
             /**
@@ -272,7 +389,7 @@ export interface components {
              */
             llm_enabled: boolean;
             /** Llm Provider */
-            llm_provider?: string | null;
+            llm_provider: string | null;
             /** Schema Version */
             schema_version: string;
             /**
@@ -327,6 +444,78 @@ export interface components {
              */
             validation_status: "unverified" | "verified" | "downgraded";
         };
+        /** NodeDetail */
+        NodeDetail: {
+            /** Diagnostics */
+            diagnostics: components["schemas"]["Diagnostic"][];
+            /** Incoming */
+            incoming: components["schemas"]["Edge"][];
+            node: components["schemas"]["Node"];
+            /** Outgoing */
+            outgoing: components["schemas"]["Edge"][];
+        };
+        /** NodeRef */
+        NodeRef: {
+            /** Id */
+            id: string;
+            /** Label */
+            label: string;
+            /** Original Text */
+            original_text: string;
+            /** Source File */
+            source_file: string;
+            span: components["schemas"]["Span"];
+            /** Type */
+            type: string;
+        };
+        /** ParamSpec */
+        ParamSpec: {
+            /** Description */
+            description: string;
+            /** Name */
+            name: string;
+            /** Required */
+            required: boolean;
+        };
+        /** QueryResult */
+        QueryResult: {
+            /** Candidates */
+            candidates: components["schemas"]["NodeRef"][];
+            /** Edges */
+            edges: components["schemas"]["EdgeRef"][];
+            /** Nodes */
+            nodes: components["schemas"]["NodeRef"][];
+            /** Params */
+            params: {
+                [key: string]: string;
+            };
+            /** Paths */
+            paths: string[][];
+            /** Query */
+            query: string;
+            /** Rows */
+            rows: components["schemas"]["Row"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "ok" | "ambiguous" | "not_found" | "no_path" | "invalid";
+            /** Summary */
+            summary: string;
+        };
+        /** QuerySpec */
+        QuerySpec: {
+            /** Definition */
+            definition: string;
+            /** Name */
+            name: string;
+            /** Params */
+            params: components["schemas"]["ParamSpec"][];
+            /** Question */
+            question: string;
+            /** Title */
+            title: string;
+        };
         /**
          * RoleScope
          * @description Who speaks / which agent owns a unit. Replaces extra node types (ontology is closed).
@@ -336,6 +525,33 @@ export interface components {
             agent: string | null;
             /** Role */
             role: ("system" | "developer" | "user" | "assistant" | "tool") | null;
+        };
+        /** Row */
+        Row: {
+            /**
+             * Basis
+             * @enum {string}
+             */
+            basis: "explicit" | "inferred" | "mixed" | "structural";
+            /** Detail */
+            detail: string;
+            /** Edge Ids */
+            edge_ids: string[];
+            /** Evidence */
+            evidence: components["schemas"]["Evidence"][];
+            /** Node Ids */
+            node_ids: string[];
+            /** Title */
+            title: string;
+        };
+        /** SeverityCounts */
+        SeverityCounts: {
+            /** Error */
+            error: number;
+            /** Info */
+            info: number;
+            /** Warning */
+            warning: number;
         };
         /**
          * SourceCoverage
@@ -400,6 +616,39 @@ export interface components {
             /** Reference */
             reference: string;
         };
+        /**
+         * ValidateRequest
+         * @description Either analyse ``files`` or check an existing ``graph`` document (exactly one).
+         */
+        ValidateRequest: {
+            /** Files */
+            files?: components["schemas"]["FileInput"][] | null;
+            graph?: components["schemas"]["GraphDocument"] | null;
+        };
+        /** ValidateResponse */
+        ValidateResponse: {
+            counts: components["schemas"]["SeverityCounts"];
+            /** Diagnostics */
+            diagnostics: components["schemas"]["Diagnostic"][];
+            /** Graph Id */
+            graph_id: string | null;
+            /**
+             * Ok
+             * @description False if the graph is invalid or any diagnostic has severity 'error'.
+             */
+            ok: boolean;
+            /** Violations */
+            violations: components["schemas"]["ViolationOut"][];
+        };
+        /** ViolationOut */
+        ViolationOut: {
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
+            /** Subject */
+            subject: string | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -429,6 +678,290 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AnalyzeResponse"];
+                };
+            };
+            /** @description 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 413 */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 422 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 504 */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_graph_api_graph__graph_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description 16 hex digits */
+                graph_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GraphDocument"];
+                };
+            };
+            /** @description 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 413 */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 422 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 504 */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_node_api_graph__graph_id__node__node_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                graph_id: string;
+                node_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NodeDetail"];
+                };
+            };
+            /** @description 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 413 */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 422 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 504 */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_path_api_graph__graph_id__path_get: {
+        parameters: {
+            query: {
+                source: string;
+                target: string;
+                undirected?: boolean;
+            };
+            header?: never;
+            path: {
+                graph_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueryResult"];
+                };
+            };
+            /** @description 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 413 */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 422 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 504 */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_query_api_graph__graph_id__query__name__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                graph_id: string;
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueryResult"];
+                };
+            };
+            /** @description 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description 413 */
@@ -485,6 +1018,95 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    list_queries_api_queries_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuerySpec"][];
+                };
+            };
+        };
+    };
+    post_validate_api_validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ValidateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidateResponse"];
+                };
+            };
+            /** @description 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 413 */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 422 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 504 */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
         };

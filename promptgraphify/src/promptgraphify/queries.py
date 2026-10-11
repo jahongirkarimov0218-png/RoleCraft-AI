@@ -1,3 +1,4 @@
+# ruff: noqa: E501
 """Named, parameterised, deterministic queries over a GraphDocument (CLI, API and UI all call this).
 
 Every answer is built from graph facts only and carries source evidence; there is no free-text
@@ -11,7 +12,7 @@ from collections.abc import Callable
 from typing import Literal
 
 import networkx as nx
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
 from .ir import Edge, Evidence, GraphDocument, Node
 from .spans import Span
