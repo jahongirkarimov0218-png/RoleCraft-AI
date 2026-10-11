@@ -24,8 +24,8 @@ promptgraphify = "promptgraphify.cli:main"
 dev = [
     "pytest>=9.1,<10",
     "hypothesis>=6.150",   # property tests for spans / ids / determinism
-    "httpx>=0.28",         # fastapi TestClient
     "ruff>=0.17",
+    "httpx2>=2.13.1",      # FastAPI/Starlette TestClient (httpx is deprecated there)
 ]
 
 [tool.hatch.build.targets.wheel]

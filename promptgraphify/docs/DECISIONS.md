@@ -174,3 +174,29 @@ Changes, each general rather than specific to a dev record, each with a regressi
 Not changed: `CONFLICTS_WITH` between two constraints that share only one content word ("Always answer in formal
 English" / "Never use formal language") stays unfound: a third, looser tier would flag unrelated pairs. All three dev
 conflicts of that kind remain misses; the optional LLM layer is the intended tool for them. Status: accepted.
+
+## D-023 · Markdown tool headings, per-rule diagnostic cap, bounded malformed spans
+Found by running prompts of realistic and hostile size (see docs/PERFORMANCE.md):
+1. `### tool_name` under a Tools heading defines a tool (the body is its definition; a heading without a body is the
+   definition itself). The name must be backticked or identifier-shaped (snake_case, camelCase, dotted): a plain word
+   such as `### Calculator` is not assumed to be a tool. The spec already said so; the implementation did not do it.
+2. `tool.undefined` is one diagnostic per undefined tool (listing every call), not one per mention: identical ids made
+   `analyze()` raise.
+3. A malformed template is reported with at most 120 characters of evidence (the opener and the non-space run glued to
+   it, capped at 40): the span used to run to the end of the file and was copied into every diagnostic (quadratic time
+   and memory: 200 KB of `{{` took 85 s).
+4. At most 200 diagnostics per rule are kept; each cut produces a document `warnings` entry that says how many were not
+   listed. Reason: a generated prompt can trigger one rule hundreds of thousands of times; an unbounded list is a
+   denial-of-service vector and useless to read. Ordinary prompts are never affected (largest synthetic prompt: 26).
+5. Input that is only whitespace, a BOM or zero-width marks is reported as `input.empty`.
+Status: accepted.
+
+## D-024 · Accessibility and layout decisions
+axe-core (WCAG 2.0/2.1/2.2 A and AA, best practices) runs in both themes over seven app states and six viewport
+sizes. The file strip is a plain group (not a tablist: it holds an input and buttons); the node list is a listbox whose
+only children are options (the empty message is a paragraph); light-theme `--ok` and `--warn` are #07704e and #855900
+(contrast at least 5.2:1 on white and on their 10 % tints; the previous values were 4.3:1 at 10 px). Interactive targets
+are at least 24x24 px outside the graph surface. Fit view can zoom to 0.02 so a 700-node graph fits the screen.
+Limitation: axe cannot judge reading order or the meaning of labels, and the graph canvas itself (SVG) is navigable by
+keyboard only through the node list; there was no screen-reader test with a real assistive technology.
+Status: accepted.
