@@ -131,10 +131,12 @@ def _flags_for(name: str, kind: str) -> set[str]:
 
 
 class _Scanner:
-    def __init__(self, text: str):
+    def __init__(self, text: str, base: Container | None = None):
         self.text = text
         self.out = Parsed(text)
-        self.stack: list[Container] = []
+        self.base = base  # enclosing container supplied by a YAML/JSON front-end; never popped
+        self.stack: list[Container] = [base] if base is not None else []
+        self.baseline = len(self.stack)
         self.para: list[int] | None = None  # [start, end, ctx-index]
         self.para_ctx: Container | None = None
         self.item: dict | None = None
@@ -186,7 +188,7 @@ class _Scanner:
         return c
 
     def _pop_labels(self) -> None:
-        while self.top is not None and self.top.kind == "label":
+        while self.top is not None and self.top is not self.base and self.top.kind == "label":
             self._pop()
 
     # ------------------------------------------------------------------ paragraphs and items
@@ -288,7 +290,12 @@ class _Scanner:
         self._end_text()
         level = len(m.group(2))
         title = m.group(3).strip()
-        while self.top is not None and self.top.kind != "tag" and (self.top.kind == "label" or self.top.level >= level):
+        while (
+            self.top is not None
+            and self.top is not self.base
+            and self.top.kind not in ("tag", "key", "object")
+            and (self.top.kind == "label" or self.top.level >= level)
+        ):
             self._pop()
         low = fold(title).lower()
         agent_m = SIGNALS.match_common("agent_heading", title)
@@ -572,7 +579,7 @@ class _Scanner:
                     Block("opaque", (body[0][0], body[-1][1]), self.top, sub="code", attrs={"lang": f["lang"]})
                 )
             self.fence = None
-        while self.stack:
+        while len(self.stack) > self.baseline:
             c = self._pop()
             if c.kind == "tag" and not c.explicit_close and not c.eol_close:
                 self.out.notes.append(
@@ -584,5 +591,7 @@ class _Scanner:
                 )
 
 
-def parse_markup(text: str) -> Parsed:
-    return _Scanner(text).run()
+def parse_markup(text: str, base: Container | None = None) -> Parsed:
+    """Scan ``text``; blocks found at top level get ``base`` (a container supplied by a structured
+    front-end, e.g. the YAML key that holds this string) as their enclosing container."""
+    return _Scanner(text, base).run()

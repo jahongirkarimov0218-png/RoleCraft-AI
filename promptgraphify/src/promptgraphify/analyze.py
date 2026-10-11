@@ -199,7 +199,7 @@ def analyze(
     coverage = []
     for s in sources:
         spans = [n.source_span for n in nodes if n.source_file == s.path]
-        coverage.append(compute_coverage(s.path, s.text, spans, [Span(start=a, end=b) for a, b in s.parsed.structural]))
+        coverage.append(compute_coverage(s.path, s.text, spans, [Span(start=a, end=b) for a, b in s.structural]))
 
     doc = GraphDocument(
         schema_version=SCHEMA_VERSION,

@@ -9,10 +9,7 @@ from promptgraphify.analyze import analyze
 from .fixture_loader import load_fixtures, resolve
 
 FIXTURES = load_fixtures()
-NEEDS_LATER = {
-    "06_yaml_prompt": "YAML front-end is milestone M3",
-    "07_json_messages": "JSON front-end is milestone M3",
-}
+NEEDS_LATER: dict[str, str] = {}
 
 
 def params():

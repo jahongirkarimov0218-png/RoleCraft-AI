@@ -11,7 +11,7 @@ import json
 from dataclasses import dataclass, field
 
 from .classify import Classification, classify, condition_clause, is_otherwise, loop_info
-from .markup import Block, Container, Note, Parsed, agent_of, parse_markup, role_of
+from .markup import Block, Container, Note, agent_of, parse_markup, role_of
 from .ontology import NodeType
 from .placeholders import Malformed, find_placeholders
 from .text import Interval, split_sentences, trim
@@ -70,11 +70,12 @@ class VarUse:
 class SourceData:
     path: str
     text: str
-    parsed: Parsed
+    fmt: str = "markdown"  # markdown | text | xml | yaml | json
     drafts: list[Draft] = field(default_factory=list)
     uses: list[VarUse] = field(default_factory=list)
     malformed: list[Malformed] = field(default_factory=list)
     notes: list[Note] = field(default_factory=list)
+    structural: list[Interval] = field(default_factory=list)
 
 
 def _unit_drafts(path: str, text: str, block: Block) -> list[Draft]:
@@ -219,9 +220,11 @@ def _json_tool_name(body: str) -> tuple[str | None, str | None]:
     return None, None
 
 
-def extract_source(path: str, text: str) -> SourceData:
-    parsed = parse_markup(text)
-    data = SourceData(path, text, parsed, notes=list(parsed.notes))
+def extract_segment(path: str, text: str, base: Container | None = None) -> SourceData:
+    """Layer A over one piece of prose (a whole text file, or one decoded YAML/JSON string). Offsets in
+    the result are relative to ``text``; the structured front-ends translate them to raw offsets."""
+    parsed = parse_markup(text, base)
+    data = SourceData(path, text, notes=list(parsed.notes), structural=list(parsed.structural))
     for block in sorted(parsed.blocks, key=lambda b: b.span):
         if block.kind in ("prose", "item"):
             data.drafts.extend(_unit_drafts(path, text, block))
@@ -233,4 +236,29 @@ def extract_source(path: str, text: str) -> SourceData:
         else:
             data.drafts.extend(_opaque_drafts(path, text, block, data.uses))
     data.drafts.sort(key=lambda d: (d.span[0], -d.span[1]))
+    return data
+
+
+def extract_source(path: str, text: str, fmt: str | None = None) -> SourceData:
+    """Dispatch on the input format (by extension, then by content) and run Layer A."""
+    from .structured import detect_format, extract_structured
+
+    fmt = fmt or detect_format(path, text)
+    if fmt in ("json", "yaml"):
+        data = extract_structured(path, text, fmt)
+        if data is not None:
+            return data
+        fmt = "markdown"  # unreadable as structured data: analyse it as plain prose
+        data = extract_segment(path, text)
+        data.fmt = fmt
+        data.notes.append(
+            Note(
+                "invalid_" + ("json" if path.lower().endswith("json") else "yaml"),
+                (0, min(1, len(text))),
+                "the file could not be read as structured data; analysed as plain text",
+            )
+        )
+        return data
+    data = extract_segment(path, text)
+    data.fmt = fmt
     return data
