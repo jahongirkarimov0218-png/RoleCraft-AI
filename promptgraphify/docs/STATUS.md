@@ -19,8 +19,8 @@ Resume from this file if context is lost. Last updated: end of M6.
 - `uv run pytest -q` → **773 passed**, 0 failed, 0 skipped, 0 warnings (Python 3.13.16, 4 CPUs). (745 at end of M5; +2 rules-doc
   sync tests, +26 modal-opener tests. The fresh-clone run, made one commit earlier, passed 747.)
 - `ruff check src tests` and `ruff format --check src tests` clean; `cd web && npx tsc --noEmit` clean; `npx vitest run` → 15 passed.
-- `cd web && npx playwright test` → **61 passed** (desktop and one mobile project): core, analysis, exports, Mermaid (official
-  parser), LLM layer (fake provider on loopback), accessibility (axe, both themes), responsive (6 sizes x 2 themes), performance.
+- `cd web && npx playwright test` → **63 passed** (desktop and one mobile project): core, analysis, exports, Mermaid (official
+  parser), canvas (neighbour dimming, node drag), LLM layer (fake provider on loopback), accessibility (axe, both themes), responsive (6 sizes x 2 themes), performance.
 - Evaluation (`eval/results/`, unreviewed labels, same author): **dev** nodes P 100 / R 100, edges P 100 / R 91.7 (tuned on this
   set; before tuning P 95.2 / R 82.5 and P 86.4 / R 52.8); **holdout, run once**: nodes P 93.9 / R 89.2 / F1 91.5, edges
   P 93.3 / R 71.8 / F1 81.2. LLM layer: **not run** (no provider or key in this environment).
@@ -68,7 +68,7 @@ Russian/Uzbek verb lists seven times thinner than English.
   Chromium path and a fixed venv path (fixed, `PG_CHROMIUM` / `PG_PYTHON`); two README commands named nodes that do not
   exist or a direction with no path (corrected to commands that were executed).
 - **CI steps** (`scripts/ci-local.sh --skip-docker`): ran green in a fresh clone (747 pytest, 15 vitest, 61 Playwright,
-  ruff, tsc, `requirements.txt` in sync with `uv.lock`) and in the working tree after the last change (773 / 15 / 61).
+  ruff, tsc, `requirements.txt` in sync with `uv.lock`) and in the working tree after the last change (773 / 15 / 63).
   The workflow file `.github/workflows/ci.yml` itself was **never run by GitHub** (no push, by instruction); it assumes
   this folder is the root of its own repository (in this monorepo it would have to move to the repository root).
 - **Docker**: a throw-away daemon was started inside the sandbox (vfs storage, no bridge network). `--target api`

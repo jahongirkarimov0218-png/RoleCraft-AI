@@ -56,6 +56,7 @@ const PromptNode = memo(function PromptNode({ data, selected }: NodeProps<PNode>
       data-testid="graph-node"
       data-node-type={n.type}
       data-node-id={n.id}
+      data-dimmed={data.dimmed ? "true" : "false"}
       title={n.original_text}
       className={cn(
         "rounded-md border bg-surface px-2.5 py-1.5 text-xs shadow-sm transition-[opacity,box-shadow] duration-150",
