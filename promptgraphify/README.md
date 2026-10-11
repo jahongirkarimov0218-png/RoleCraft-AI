@@ -187,7 +187,7 @@ uv run pytest -q                                   # backend tests
 uv run ruff check src tests && uv run ruff format --check src tests
 cd web && npx tsc --noEmit && npx vitest run       # UI unit tests
 cd web && npx playwright install chromium && npx playwright test    # end-to-end tests (builds and starts both servers)
-scripts/ci-local.sh                                # every step of .github/workflows/ci.yml, in order
+scripts/ci-local.sh                                # the steps of the CI workflow, in order
 uv run python -m promptgraphify.evalkit --split dev       # extraction evaluation (eval/README.md)
 uv run python -m tests.measure_perf                       # backend timings (docs/PERFORMANCE.md)
 ```
@@ -209,7 +209,8 @@ tests/                pytest suite and tests/fixtures/ (15 annotated prompts)
 web/                  Next.js + React Flow UI, unit tests, Playwright end-to-end tests (web/e2e)
 eval/                 hand-labelled dataset, harness results
 docs/                 ANALYSIS_SPEC, RULES, DECISIONS, STATUS, PERFORMANCE, REFERENCE_NOTES
-Dockerfile, docker-compose.yml, .github/workflows/ci.yml, scripts/ci-local.sh
+Dockerfile, docker-compose.yml, scripts/ci-local.sh
+../.github/workflows/promptgraphify-ci.yml   CI (at the repository root; every step runs in promptgraphify/)
 ```
 
 Documents worth reading first: `docs/ANALYSIS_SPEC.md` (what counts as a node, an edge, a span), `docs/DECISIONS.md`

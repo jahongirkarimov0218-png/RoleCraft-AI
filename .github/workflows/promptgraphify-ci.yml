@@ -1,0 +1,75 @@
+# PromptGraphify CI. The project lives in promptgraphify/ inside this repository (next to the RoleCraft app at the root),
+# so every `run:` step executes in promptgraphify/ (or promptgraphify/web) and the workflow only triggers on changes
+# there. The same steps run locally with promptgraphify/scripts/ci-local.sh.
+name: promptgraphify-ci
+on:
+  push:
+    branches: [main]
+    paths: ["promptgraphify/**", ".github/workflows/promptgraphify-ci.yml"]
+  pull_request:
+    paths: ["promptgraphify/**", ".github/workflows/promptgraphify-ci.yml"]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: promptgraphify-ci-${{ github.ref }}
+  cancel-in-progress: true
+defaults:
+  run:
+    working-directory: promptgraphify
+    shell: bash
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.13"] # 3.12 is the floor in pyproject.toml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen --python ${{ matrix.python }}
+      - run: uv run ruff check src tests
+      - run: uv run ruff format --check src tests
+      - run: uv run pytest -q
+      - name: requirements.txt matches uv.lock
+        run: |
+          uv export --no-dev --no-emit-project --frozen --format requirements-txt -o "$RUNNER_TEMP/requirements.txt"
+          diff <(grep -v '^#' requirements.txt) <(grep -v '^#' "$RUNNER_TEMP/requirements.txt")
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: promptgraphify/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: promptgraphify/web/package-lock.json
+      - run: uv sync --frozen # the end-to-end tests start the backend from promptgraphify/.venv
+        working-directory: promptgraphify
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx vitest run
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+        env:
+          CI: "1"
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: promptgraphify/web/test-results/
+          retention-days: 7
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --target api -t promptgraphify-api .
+      - run: docker build --target web -t promptgraphify-web --build-arg PROMPTGRAPHIFY_API_URL=http://api:8000 .

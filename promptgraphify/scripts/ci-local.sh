@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The steps of .github/workflows/ci.yml, run on this machine. Usage: scripts/ci-local.sh [--skip-e2e] [--skip-docker]
+# The steps of ../.github/workflows/promptgraphify-ci.yml (repository root), run on this machine. Usage: scripts/ci-local.sh [--skip-e2e] [--skip-docker]
 # Exit code is non-zero at the first failing step; the Docker step is skipped (and says so) if no daemon is reachable.
 set -euo pipefail
 cd "$(dirname "$0")/.."
