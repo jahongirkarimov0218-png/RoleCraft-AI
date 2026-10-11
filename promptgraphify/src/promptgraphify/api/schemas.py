@@ -44,7 +44,7 @@ class AnalyzeRequest(_Strict):
     layer_b: bool = Field(
         default=False,
         description="Enable the optional LLM layer. Off by default; when on, the prompt text is sent to the "
-        "configured provider (see /api/health).",
+        "configured provider (see /api/health). 503 llm_unavailable if no provider is configured.",
     )
 
 
@@ -84,8 +84,13 @@ class Health(_Strict):
     status: Literal["ok"]
     version: str
     schema_version: str
-    llm_enabled: bool = Field(description="True only if an LLM provider is configured and Layer B is allowed.")
+    llm_enabled: bool = Field(
+        description="True if an LLM provider is configured, i.e. a request may ask for the optional LLM layer. "
+        "The layer itself is off unless a request sets layer_b."
+    )
     llm_provider: str | None
+    llm_model: str | None
+    llm_endpoint: str | None = Field(description="Host (and port) the prompt text is sent to when layer_b is on.")
 
 
 class NodeDetail(_Strict):

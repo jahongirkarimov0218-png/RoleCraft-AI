@@ -189,7 +189,7 @@ export interface components {
             files: components["schemas"]["FileInput"][];
             /**
              * Layer B
-             * @description Enable the optional LLM layer. Off by default; when on, the prompt text is sent to the configured provider (see /api/health).
+             * @description Enable the optional LLM layer. Off by default; when on, the prompt text is sent to the configured provider (see /api/health). 503 llm_unavailable if no provider is configured.
              * @default false
              */
             layer_b: boolean;
@@ -515,9 +515,16 @@ export interface components {
         Health: {
             /**
              * Llm Enabled
-             * @description True only if an LLM provider is configured and Layer B is allowed.
+             * @description True if an LLM provider is configured, i.e. a request may ask for the optional LLM layer. The layer itself is off unless a request sets layer_b.
              */
             llm_enabled: boolean;
+            /**
+             * Llm Endpoint
+             * @description Host (and port) the prompt text is sent to when layer_b is on.
+             */
+            llm_endpoint: string | null;
+            /** Llm Model */
+            llm_model: string | null;
             /** Llm Provider */
             llm_provider: string | null;
             /** Schema Version */

@@ -274,3 +274,72 @@ def test_real_process_exit_codes(proj):
     assert sh("explain", "step").returncode == 3
     assert sh("analyze", "missing.md").returncode == 2
     assert sh("validate", "--graph", "promptgraphify-out/graph.json").returncode == 0
+
+
+# ------------------------------------------------------------------------------------------ --llm
+UNCOVERED = "You are a support bot.\nxyzzy plugh quux.\nSummarize the ticket.\n"
+
+
+def provider(monkeypatch, answer):
+    """A real OpenAI-compatible server on loopback, wired in through the documented environment variables."""
+    from .test_llm import Server, completion, reply
+
+    server = Server(lambda h: reply(h, 200, completion(json.dumps(answer))))
+    monkeypatch.setenv("PROMPTGRAPHIFY_LLM_PROVIDER", "openai-compatible")
+    monkeypatch.setenv("PROMPTGRAPHIFY_LLM_MODEL", "m-1")
+    monkeypatch.setenv("PROMPTGRAPHIFY_LLM_BASE_URL", server.url)
+    monkeypatch.setenv("PROMPTGRAPHIFY_LLM_API_KEY", "tok_SECRETSECRET1234")
+    return server
+
+
+def test_llm_is_off_by_default_even_when_a_provider_is_configured(proj, capsys, monkeypatch):
+    server = provider(monkeypatch, {"nodes": [], "edges": []})
+    try:
+        (proj / "u.md").write_text(UNCOVERED, encoding="utf-8")
+        code, out, err = run(capsys, "analyze", "u.md", "--json")
+        assert code == OK and server.requests == [] and json.loads(out)["warnings"] == []
+    finally:
+        server.close()
+
+
+def test_llm_flag_runs_the_layer_and_says_where_the_text_goes(proj, capsys, monkeypatch):
+    answer = {
+        "nodes": [
+            {"type": "TaskNode", "file": "u.md", "quote": "xyzzy plugh quux.", "description": "d", "confidence": 0.7}
+        ],
+        "edges": [],
+    }
+    server = provider(monkeypatch, answer)
+    try:
+        (proj / "u.md").write_text(UNCOVERED, encoding="utf-8")
+        code, out, err = run(capsys, "analyze", "u.md", "--llm")
+        assert code == OK and len(server.requests) == 1
+        assert f"sent to 127.0.0.1:{server.httpd.server_address[1]}" in err and "SECRET" not in out + err
+        assert "note: layer_b:" in out and "accepted 1 node(s)" in out
+        doc = graphjson.loads((proj / "promptgraphify-out" / "graph.json").read_text(encoding="utf-8"))
+        assert [n.original_text for n in doc.nodes if n.extraction_method.startswith("llm:")] == ["xyzzy plugh quux."]
+    finally:
+        server.close()
+
+
+def test_llm_flag_without_a_provider_is_a_usage_error(proj, capsys, monkeypatch):
+    monkeypatch.delenv("PROMPTGRAPHIFY_LLM_PROVIDER", raising=False)
+    code, _, err = run(capsys, "analyze", "prompts/v1.md", "--llm")
+    assert code == USAGE and "PROMPTGRAPHIFY_LLM_PROVIDER" in err and not (proj / "promptgraphify-out").exists()
+
+
+def test_llm_flag_with_a_bad_configuration_names_the_variable(proj, capsys, monkeypatch):
+    monkeypatch.setenv("PROMPTGRAPHIFY_LLM_PROVIDER", "openai-compatible")
+    monkeypatch.delenv("PROMPTGRAPHIFY_LLM_MODEL", raising=False)
+    code, _, err = run(capsys, "analyze", "prompts/v1.md", "--llm")
+    assert code == USAGE and "PROMPTGRAPHIFY_LLM_MODEL" in err
+
+
+def test_llm_flag_with_an_unreachable_provider_still_writes_the_deterministic_result(proj, capsys, monkeypatch):
+    monkeypatch.setenv("PROMPTGRAPHIFY_LLM_PROVIDER", "openai-compatible")
+    monkeypatch.setenv("PROMPTGRAPHIFY_LLM_MODEL", "m-1")
+    monkeypatch.setenv("PROMPTGRAPHIFY_LLM_BASE_URL", "http://127.0.0.1:1/v1")
+    monkeypatch.setenv("PROMPTGRAPHIFY_LLM_API_KEY", "tok_SECRETSECRET1234")
+    code, out, err = run(capsys, "analyze", "prompts/v1.md", "--llm")
+    assert code == OK and "cannot reach the provider" in out and "SECRET" not in out + err
+    assert (proj / "promptgraphify-out" / "graph.json").exists()

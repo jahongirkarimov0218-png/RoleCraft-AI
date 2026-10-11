@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { TYPE_COLOR, TYPE_LABEL } from "@/lib/graph-view";
-import type { GraphNode, Selection } from "@/lib/types";
+import { isLlm, type GraphNode, type Selection } from "@/lib/types";
 
 /** Keyboard-navigable list of the nodes (ARIA listbox: arrows move, Enter / Space selects, Esc clears). */
 export function NodeList({
@@ -65,6 +65,7 @@ export function NodeList({
           <span className="size-2 shrink-0 rounded-full" style={{ background: TYPE_COLOR[n.type] }} aria-hidden />
           <span className="w-16 shrink-0 text-[10px] uppercase tracking-wide text-muted">{TYPE_LABEL[n.type]}</span>
           <span className="truncate">{n.label}</span>
+          {isLlm(n) && <span className="ml-auto shrink-0 text-[10px] text-warn">LLM</span>}
         </li>
       ))}
     </ul>

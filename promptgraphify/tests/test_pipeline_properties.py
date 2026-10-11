@@ -16,6 +16,7 @@ from promptgraphify.analyze import AnalysisError, analyze
 from promptgraphify.ir import AnalysisConfig
 from promptgraphify.validate import validate_document
 
+from .fake_llm import FakeAdapter
 from .fixture_loader import load_fixtures
 
 FIXTURES = [f for f in load_fixtures() if f.name not in {"06_yaml_prompt", "07_json_messages"}]
@@ -86,7 +87,12 @@ def test_graph_id_depends_on_input_and_config():
     a = analyze({"p.txt": "You are a bot.\nNever lie.\n"})
     assert a.graph_id == analyze({"p.txt": "You are a bot.\nNever lie.\n"}).graph_id
     assert a.graph_id != analyze({"p.txt": "You are a bot.\nNever cheat.\n"}).graph_id
-    assert a.graph_id != analyze({"p.txt": "You are a bot.\nNever lie.\n"}, AnalysisConfig(layer_b=True)).graph_id
+    layer_b = analyze(
+        {"p.txt": "You are a bot.\nNever lie.\n"},
+        AnalysisConfig(layer_b=True),
+        adapter=FakeAdapter({"nodes": [], "edges": []}),  # the layer now needs a provider; this one proposes nothing
+    )
+    assert a.graph_id != layer_b.graph_id
 
 
 def test_inserting_a_line_does_not_change_other_ids():

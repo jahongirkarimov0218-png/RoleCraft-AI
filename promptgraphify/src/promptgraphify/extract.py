@@ -40,6 +40,7 @@ class Draft:
     cls: Classification | None = None
     decoded: str | None = None
     precision: str = "exact"
+    method: str | None = None  # full extraction_method override (``llm:<adapter>``); default is deterministic:<rule>
 
     @property
     def role(self) -> str | None:

@@ -38,7 +38,7 @@ import {
   type View,
   type ViewEdge,
 } from "@/lib/graph-view";
-import type { GraphNode, Selection } from "@/lib/types";
+import { isLlm, type GraphNode, type Selection } from "@/lib/types";
 
 interface NodeData extends Record<string, unknown> {
   node: GraphNode;
@@ -59,6 +59,7 @@ const PromptNode = memo(function PromptNode({ data, selected }: NodeProps<PNode>
       title={n.original_text}
       className={cn(
         "rounded-md border bg-surface px-2.5 py-1.5 text-xs shadow-sm transition-[opacity,box-shadow] duration-150",
+        isLlm(n) && "border-dashed",
         selected && "ring-2 ring-accent",
         data.matched && "ring-2 ring-warn",
         data.dimmed && "opacity-25",
@@ -69,6 +70,7 @@ const PromptNode = memo(function PromptNode({ data, selected }: NodeProps<PNode>
       <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted">
         <span className="size-2 rounded-full" style={{ background: color }} aria-hidden />
         <span>{TYPE_LABEL[n.type]}</span>
+        {isLlm(n) && <span className="text-warn">LLM</span>}
         {undefinedRef && <span className="ml-auto text-warn">unresolved</span>}
         {n.confidence < 1 && <span className="ml-auto tabular-nums">{n.confidence.toFixed(2)}</span>}
       </div>

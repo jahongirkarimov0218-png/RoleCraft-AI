@@ -26,6 +26,7 @@ from .diff import DiffResult, diff_documents
 from .exporters import FORMATS, render
 from .graphjson import UnsupportedGraph
 from .ir import AnalysisConfig, GraphDocument
+from .llm import LlmConfigError, get_adapter
 from .queries import QUERY_NAMES, QUERY_SPECS, QueryResult, explain_node, run_query
 from .validate import GraphInvalid, validate_document
 
@@ -232,8 +233,20 @@ def cmd_analyze(args: argparse.Namespace) -> int:
         raise CliError(str(exc)) from exc
     for note in got.notes:
         print(f"note: {note}", file=sys.stderr)
+    adapter = None
+    if args.llm:
+        try:
+            adapter = get_adapter()
+        except LlmConfigError as exc:
+            raise CliError(str(exc)) from exc
+        if adapter is None:
+            raise CliError("--llm needs a provider: set PROMPTGRAPHIFY_LLM_PROVIDER and _MODEL (see .env.example)")
+        print(
+            f"note: the LLM layer is on; the prompt text is sent to {adapter.endpoint} (model {adapter.model})",
+            file=sys.stderr,
+        )
     try:
-        doc = analyze(got.files, AnalysisConfig(layer_b=False), max_input_chars=args.max_chars)
+        doc = analyze(got.files, AnalysisConfig(layer_b=bool(adapter)), max_input_chars=args.max_chars, adapter=adapter)
     except AnalysisError as exc:
         raise CliError(str(exc)) from exc
 
@@ -267,6 +280,7 @@ def cmd_analyze(args: argparse.Namespace) -> int:
                     "edges": len(doc.edges),
                     "diagnostics": sev,
                     "dag_status": doc.dag.status,
+                    "warnings": doc.warnings,
                     "coverage": {"accounted": covered, "total": total, "uncovered": uncovered},
                     "written": [str(t) for t, _ in planned],
                 },
@@ -287,6 +301,8 @@ def cmd_analyze(args: argparse.Namespace) -> int:
             print(f"  {target}")
         if "html" in formats:
             print(f"Open {out / 'graph.html'} in a browser; it works offline.")
+        for note in doc.warnings:
+            print(f"note: {note}")
     if args.fail_on != "never" and any(
         SEVERITY_RANK[d.severity] >= SEVERITY_RANK[args.fail_on] for d in doc.diagnostics
     ):
@@ -428,6 +444,11 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["error", "warning", "info", "never"],
         default="never",
         help="exit 1 if a diagnostic of this severity or worse exists",
+    )
+    a.add_argument(
+        "--llm",
+        action="store_true",
+        help="also run the optional LLM layer; sends the prompt text to the provider named by PROMPTGRAPHIFY_LLM_*",
     )
     a.add_argument("--json", action="store_true", help="print a machine-readable summary")
     _limit_args(a)

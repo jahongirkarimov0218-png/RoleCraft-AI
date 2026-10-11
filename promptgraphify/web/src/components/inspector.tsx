@@ -3,7 +3,7 @@
 import { ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TYPE_COLOR, TYPE_LABEL } from "@/lib/graph-view";
-import type { GraphDocument, GraphEdge, GraphNode, Selection } from "@/lib/types";
+import { isLlm, type GraphDocument, type GraphEdge, type GraphNode, type Selection } from "@/lib/types";
 
 const STATUS_TONE = { EXTRACTED: "ok", INFERRED: "accent", AMBIGUOUS: "warn" } as const;
 
@@ -52,6 +52,11 @@ function NodeCard({ doc, node, onSelect }: { doc: GraphDocument; node: GraphNode
         <Badge tone={node.validation_status === "verified" ? "ok" : "warn"}>{node.validation_status}</Badge>
         <Badge>{node.extraction_method}</Badge>
       </div>
+      {isLlm(node) && (
+        <p className="rounded border border-warn/40 bg-warn/10 px-2 py-1 text-xs text-warn" data-testid="llm-note">
+          Proposed by the LLM layer. The quote was found in your text, but no rule derived this node: treat it as a suggestion.
+        </p>
+      )}
       <div>
         <div className="mb-1 text-[10px] uppercase tracking-wide text-muted">Original text (exact source span)</div>
         <pre

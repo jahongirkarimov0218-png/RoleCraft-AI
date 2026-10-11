@@ -29,6 +29,8 @@ from .ir import (
     ToolInfo,
     UnresolvedDependency,
 )
+from .layer_b import run_layer_b
+from .llm import LlmAdapter
 from .ontology import RELATIONS
 from .relations import DraftEdge, Linked, link
 from .security import has_lone_surrogate, sanitize_label
@@ -69,9 +71,16 @@ def _source_file(path: str, text: str) -> SourceFile:
     )
 
 
-def compute_graph_id(sources: list[tuple[str, str]], config: AnalysisConfig, analyzer_version: str) -> str:
+def compute_graph_id(
+    sources: list[tuple[str, str]], config: AnalysisConfig, analyzer_version: str, layer_b_digest: str | None = None
+) -> str:
+    """Content address of the analysis. With Layer B the accepted proposals are part of the content (a model may
+    answer differently next time), so their digest joins the hash; without it the id is unchanged."""
+    body: dict = {"sources": sources, "config": config.model_dump(mode="json"), "analyzer": analyzer_version}
+    if layer_b_digest is not None:
+        body["layer_b"] = layer_b_digest
     payload = json.dumps(
-        {"sources": sources, "config": config.model_dump(mode="json"), "analyzer": analyzer_version},
+        body,
         sort_keys=True,
         ensure_ascii=False,
         separators=(",", ":"),
@@ -121,7 +130,7 @@ def _node(d: Draft, nid: str) -> Node:
         source_span=Span(start=d.span[0], end=d.span[1]),
         role_scope=RoleScope(role=d.role, agent=d.agent),
         metadata=meta,
-        extraction_method=f"deterministic:{d.rule}",
+        extraction_method=d.method or f"deterministic:{d.rule}",
         confidence=d.confidence,
         validation_status="unverified",
     )
@@ -179,8 +188,10 @@ def analyze(
     config: AnalysisConfig | None = None,
     *,
     max_input_chars: int = DEFAULT_MAX_INPUT_CHARS,
+    adapter: LlmAdapter | None = None,
 ) -> GraphDocument:
-    """Analyse ``inputs`` ({path: text}). ``max_input_chars`` is a runtime guard, not part of the result."""
+    """Analyse ``inputs`` ({path: text}). ``max_input_chars`` is a runtime guard, not part of the result.
+    ``config.layer_b`` asks for the optional LLM layer and needs ``adapter``; the deterministic analysis does not."""
     config = config or AnalysisConfig(layer_b=False)
     pairs = sorted(dict(inputs).items() if isinstance(inputs, Mapping) else inputs)
     if not pairs:
@@ -189,6 +200,8 @@ def analyze(
         raise AnalysisError("input_too_large", f"input exceeds {max_input_chars} characters")
     if len({p for p, _ in pairs}) != len(pairs):
         raise AnalysisError("duplicate_path", "two inputs share a path")
+    if config.layer_b and adapter is None:
+        raise AnalysisError("llm_unavailable", "the LLM layer was requested but no provider is configured")
     for path, text in pairs:
         if has_lone_surrogate(path) or has_lone_surrogate(text):
             raise AnalysisError("invalid_text", f"{path!r} contains a lone UTF-16 surrogate; it is not valid text")
@@ -196,6 +209,11 @@ def analyze(
     sources: list[SourceData] = [extract_source(p, t) for p, t in pairs]
     texts = {p: t for p, t in pairs}
     linked = link(sources)
+    layer_b = run_layer_b(adapter, sources, linked, texts) if config.layer_b and adapter is not None else None
+    if layer_b is not None:
+        linked = Linked(
+            drafts=[*linked.drafts, *layer_b.drafts], edges=[*linked.edges, *layer_b.edges], findings=linked.findings
+        )
     drafts = sorted(linked.drafts, key=lambda d: (d.file, d.span[0], -d.span[1], TYPE_ORDER[d.type]))
     ids = _assign_ids(drafts, multi=len(pairs) > 1)
     nodes = [_node(d, ids[id(d)]) for d in drafts]
@@ -225,7 +243,7 @@ def analyze(
         schema_version=SCHEMA_VERSION,
         tool=ToolInfo(version=__version__),
         analyzer_version=__version__,
-        graph_id=compute_graph_id(pairs, config, __version__),
+        graph_id=compute_graph_id(pairs, config, __version__, layer_b.digest if layer_b else None),
         config=config,
         sources=[_source_file(p, t) for p, t in pairs],
         nodes=nodes,
@@ -233,7 +251,7 @@ def analyze(
         coverage=coverage,
         diagnostics=diagnostics,
         dag=dag,
-        warnings=[],
+        warnings=layer_b.warnings if layer_b else [],
     )
     assert_valid(doc)
     return doc.model_copy(update={"nodes": [n.model_copy(update={"validation_status": "verified"}) for n in doc.nodes]})

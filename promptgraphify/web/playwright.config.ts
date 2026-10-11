@@ -4,6 +4,7 @@ import { defineConfig, devices } from "@playwright/test";
 // analyzer: every graph on screen comes from POST /api/analyze.
 const API_PORT = Number(process.env.PG_API_PORT ?? 8000);
 const WEB_PORT = Number(process.env.PG_WEB_PORT ?? 3100);
+const LLM_PORT = Number(process.env.PG_FAKE_LLM_PORT ?? 8002);
 // The sandbox ships Chromium outside Playwright's cache; PG_CHROMIUM overrides it for other machines.
 const executablePath = process.env.PG_CHROMIUM ?? (process.env.CI ? undefined : "/opt/pw-browsers/chromium-1194/chrome-linux/chrome");
 
@@ -25,8 +26,22 @@ export default defineConfig({
   ],
   webServer: [
     {
+      // A fake OpenAI-compatible provider on loopback: the backend below is configured to use it, so the optional
+      // LLM layer is exercised end to end (HTTP, verifier, UI) without any external network or key.
+      command: "node e2e/fake-llm.mjs",
+      url: `http://127.0.0.1:${LLM_PORT}/__stats`,
+      env: { PG_FAKE_LLM_PORT: String(LLM_PORT) },
+      reuseExistingServer: Boolean(process.env.PG_REUSE_SERVER),
+    },
+    {
       command: `../.venv/bin/python -m uvicorn promptgraphify.api.app:app --host 127.0.0.1 --port ${API_PORT}`,
       url: `http://127.0.0.1:${API_PORT}/api/health`,
+      env: {
+        PROMPTGRAPHIFY_LLM_PROVIDER: "openai-compatible",
+        PROMPTGRAPHIFY_LLM_BASE_URL: `http://127.0.0.1:${LLM_PORT}/v1`,
+        PROMPTGRAPHIFY_LLM_MODEL: "fake-model",
+        PROMPTGRAPHIFY_LLM_API_KEY: "e2e-not-a-real-key",
+      },
       // A stale server on the port would silently test old code: fail loudly unless asked to reuse it.
       reuseExistingServer: Boolean(process.env.PG_REUSE_SERVER),
       timeout: 60_000,

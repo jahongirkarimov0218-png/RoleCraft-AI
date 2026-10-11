@@ -17,6 +17,8 @@ export interface HealthInfo {
   schema_version: string;
   llm_enabled: boolean;
   llm_provider?: string | null;
+  llm_model?: string | null;
+  llm_endpoint?: string | null;
 }
 
 async function parse(res: Response) {
@@ -27,11 +29,15 @@ async function parse(res: Response) {
   return body;
 }
 
-export async function analyze(files: { path: string; text: string }[], signal?: AbortSignal): Promise<AnalyzeResponse> {
+export async function analyze(
+  files: { path: string; text: string }[],
+  signal?: AbortSignal,
+  layerB = false,
+): Promise<AnalyzeResponse> {
   const res = await fetch("/api/analyze", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ files }),
+    body: JSON.stringify({ files, layer_b: layerB }),
     signal,
   });
   return parse(res);

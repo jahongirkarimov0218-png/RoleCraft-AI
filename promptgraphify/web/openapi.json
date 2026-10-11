@@ -29,7 +29,7 @@
           },
           "layer_b": {
             "default": false,
-            "description": "Enable the optional LLM layer. Off by default; when on, the prompt text is sent to the configured provider (see /api/health).",
+            "description": "Enable the optional LLM layer. Off by default; when on, the prompt text is sent to the configured provider (see /api/health). 503 llm_unavailable if no provider is configured.",
             "title": "Layer B",
             "type": "boolean"
           }
@@ -1027,9 +1027,32 @@
         "additionalProperties": false,
         "properties": {
           "llm_enabled": {
-            "description": "True only if an LLM provider is configured and Layer B is allowed.",
+            "description": "True if an LLM provider is configured, i.e. a request may ask for the optional LLM layer. The layer itself is off unless a request sets layer_b.",
             "title": "Llm Enabled",
             "type": "boolean"
+          },
+          "llm_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Host (and port) the prompt text is sent to when layer_b is on.",
+            "title": "Llm Endpoint"
+          },
+          "llm_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Model"
           },
           "llm_provider": {
             "anyOf": [
@@ -1061,7 +1084,9 @@
           "version",
           "schema_version",
           "llm_enabled",
-          "llm_provider"
+          "llm_provider",
+          "llm_model",
+          "llm_endpoint"
         ],
         "title": "Health",
         "type": "object"

@@ -7,7 +7,7 @@ import os
 import re
 import threading
 from dataclasses import dataclass
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from fastapi import FastAPI, Path, Query, Request
 from fastapi.exceptions import RequestValidationError
@@ -21,6 +21,7 @@ from ..diff import DiffResult, diff_documents
 from ..exporters import FORMATS, render
 from ..graphjson import UnsupportedGraph
 from ..ir import SCHEMA_VERSION, AnalysisConfig, GraphDocument
+from ..llm import LlmAdapter, get_adapter
 from ..queries import QUERY_NAMES, QUERY_SPECS, QueryResult, QuerySpec, run_query
 from ..storage import GraphStore, SqliteGraphStore, default_db_path
 from ..validate import GraphInvalid, validate_document
@@ -121,8 +122,16 @@ def error_response(code: str, message: str, details: list[ErrorDetail] | None = 
 ERROR_RESPONSES = {code: {"model": ErrorResponse, "description": f"{code}"} for code in (404, 413, 422, 500, 504)}
 
 
-def create_app(settings: Settings | None = None, store: GraphStore | None = None) -> FastAPI:
+_FROM_ENV: Any = object()
+
+
+def create_app(
+    settings: Settings | None = None, store: GraphStore | None = None, llm: LlmAdapter | None = _FROM_ENV
+) -> FastAPI:
+    """``llm`` defaults to the adapter configured by the environment (none unless PROMPTGRAPHIFY_LLM_* is set; a
+    bad configuration raises at start-up rather than failing on the first request)."""
     cfg = settings or Settings.from_env()
+    adapter = get_adapter() if llm is _FROM_ENV else llm
     app = FastAPI(
         title="PromptGraphify API",
         version=__version__,
@@ -168,9 +177,18 @@ def create_app(settings: Settings | None = None, store: GraphStore | None = None
         if total > cfg.max_input_chars:
             raise AnalysisError("input_too_large", f"input has {total} characters, the limit is {cfg.max_input_chars}")
         pairs = [(f.path, f.text) for f in files]
+        # The LLM layer has its own deadline and falls back to the deterministic result; the API timeout only
+        # has to cover it on top of the analysis itself.
+        timeout = cfg.analyze_timeout_s + (adapter.timeout_s + 5.0 if layer_b and adapter else 0.0)
         return await asyncio.wait_for(
-            asyncio.to_thread(analyze, pairs, AnalysisConfig(layer_b=False), max_input_chars=cfg.max_input_chars),
-            timeout=cfg.analyze_timeout_s,
+            asyncio.to_thread(
+                analyze,
+                pairs,
+                AnalysisConfig(layer_b=layer_b),
+                max_input_chars=cfg.max_input_chars,
+                adapter=adapter if layer_b else None,
+            ),
+            timeout=timeout,
         )
 
     def failure(exc: Exception) -> JSONResponse:
@@ -196,7 +214,13 @@ def create_app(settings: Settings | None = None, store: GraphStore | None = None
     @app.get("/api/health", response_model=Health, tags=["meta"])
     async def health() -> Health:
         return Health(
-            status="ok", version=__version__, schema_version=SCHEMA_VERSION, llm_enabled=False, llm_provider=None
+            status="ok",
+            version=__version__,
+            schema_version=SCHEMA_VERSION,
+            llm_enabled=adapter is not None,
+            llm_provider=adapter.name if adapter else None,
+            llm_model=adapter.model if adapter else None,
+            llm_endpoint=adapter.endpoint if adapter else None,
         )
 
     @app.post(

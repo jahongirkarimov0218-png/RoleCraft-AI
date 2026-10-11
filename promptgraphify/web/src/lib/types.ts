@@ -32,3 +32,6 @@ export const EDGE_STATUSES: EdgeStatus[] = ["EXTRACTED", "INFERRED", "AMBIGUOUS"
 export type Severity = Diagnostic["severity"];
 
 export type Selection = { kind: "node"; id: string } | { kind: "edge"; id: string } | null;
+
+/** True for nodes and edges proposed by the optional LLM layer (never derived by the deterministic rules). */
+export const isLlm = (x: { extraction_method: string }) => x.extraction_method.startsWith("llm:");

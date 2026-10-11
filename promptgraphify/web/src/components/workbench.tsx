@@ -65,6 +65,7 @@ export function Workbench() {
   const [pane, setPane] = useState<Pane>("editor");
   const [reveal, setReveal] = useState<{ offset: number; nonce: number } | null>(null);
   const [info, setInfo] = useState<HealthInfo | null>(null);
+  const [useLlm, setUseLlm] = useState(false); // opt-in per session: off until the person turns it on
   const abort = useRef<AbortController | null>(null);
   const nonce = useRef(0);
 
@@ -105,7 +106,7 @@ export function Workbench() {
     setError(null);
     const snapshot = files.map((f) => ({ name: f.name, text: f.text }));
     try {
-      const res = await analyze(snapshot.map((f) => ({ path: f.name, text: f.text })), ctl.signal);
+      const res = await analyze(snapshot.map((f) => ({ path: f.name, text: f.text })), ctl.signal, useLlm && Boolean(info?.llm_enabled));
       setAnalysis({ doc: res.graph, files: snapshot, indexes: new Map(snapshot.map((f) => [f.name, buildOffsetIndex(f.text)])) });
       setSelection(null);
       setFocusDiag(null);
@@ -117,7 +118,7 @@ export function Workbench() {
       setStatus("error");
       setError(e instanceof ApiError ? `${e.code}: ${e.message}` : "The analysis service is not reachable.");
     }
-  }, [files]);
+  }, [files, useLlm, info]);
 
   const goTo = useCallback(
     (file: string, cp: number) => {
@@ -247,9 +248,17 @@ export function Workbench() {
         <span className="hidden text-xs text-muted sm:inline">Ctrl/Cmd + Enter</span>
         <div className="ml-auto flex items-center gap-2">
           <ExportMenu graphId={doc?.graph_id ?? null} />
-          {info?.llm_enabled ? (
+          {info?.llm_enabled && (
+            <label className="flex items-center gap-1.5 text-xs" title="Off by default. When on, the prompt text is sent to the provider.">
+              <input type="checkbox" checked={useLlm} onChange={(e) => setUseLlm(e.target.checked)} data-testid="llm-toggle" />
+              Use LLM layer
+            </label>
+          )}
+          {info?.llm_enabled && useLlm ? (
             <Badge tone="warn" data-testid="llm-badge">
-              <TriangleAlert className="mr-1 size-3" aria-hidden /> LLM layer ON: prompt text is sent to {info.llm_provider ?? "the provider"}
+              <TriangleAlert className="mr-1 size-3" aria-hidden /> LLM layer ON: prompt text is sent to{" "}
+              {info.llm_endpoint ?? info.llm_provider ?? "the provider"}
+              {info.llm_model ? ` (${info.llm_model})` : ""}
             </Badge>
           ) : (
             <Badge tone="ok" data-testid="llm-badge">
@@ -313,6 +322,13 @@ export function Workbench() {
             <div className="border-b border-warn/40 bg-warn/10 px-3 py-1 text-xs text-warn" role="status" data-testid="stale-banner">
               The text changed since the last analysis. Analyze again to refresh the graph and highlights.
             </div>
+          )}
+          {doc && doc.warnings.length > 0 && (
+            <ul className="border-b border-border bg-surface-2 px-3 py-1 text-xs text-muted" role="status" data-testid="analysis-notes" aria-label="Notes about this analysis">
+              {doc.warnings.map((w, i) => (
+                <li key={i}>{w}</li>
+              ))}
+            </ul>
           )}
           {status === "error" && error && (
             <div className="border-b border-err/40 bg-err/10 px-3 py-1 text-xs text-err" role="alert" data-testid="error-banner">
