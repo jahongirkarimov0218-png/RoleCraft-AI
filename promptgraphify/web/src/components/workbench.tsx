@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Moon, Play, Plus, ShieldCheck, Sun, TriangleAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,6 +57,8 @@ export function Workbench() {
   const [focusDiag, setFocusDiag] = useState<Diagnostic | null>(null);
   const [extraEvidence, setExtraEvidence] = useState<{ file: string; from: number; to: number }[]>([]);
   const [filters, setFilters] = useState<Filters>({ types: new Set(NODE_TYPES), statuses: new Set(EDGE_STATUSES), search: "" });
+  // The input follows every keystroke; the views (hundreds of nodes) catch up at low priority so typing never stalls.
+  const viewFilters = useDeferredValue(filters);
   const [view, setView] = useState<"graph" | "dag">("graph");
   const [bottom, setBottom] = useState<"nodes" | "diagnostics" | "queries">("nodes");
   const [subgraph, setSubgraph] = useState(false);
@@ -209,11 +211,17 @@ export function Workbench() {
 
   const listed = useMemo(() => {
     if (!doc) return [];
-    return doc.nodes.filter((n) => filters.types.has(n.type) && matchesSearch(n, filters.search));
-  }, [doc, filters]);
+    return doc.nodes.filter((n) => viewFilters.types.has(n.type) && matchesSearch(n, viewFilters.search));
+  }, [doc, viewFilters]);
 
-  const kg = useMemo(() => (doc ? knowledgeView(doc, filters) : null), [doc, filters]);
-  const dag = useMemo(() => (doc ? dagView(doc, filters, subgraph) : null), [doc, filters, subgraph]);
+  // Which nodes and edges exist depends on the type/status filters only; search just dims. Keeping the view arrays
+  // stable while typing is what keeps the (expensive) graph layout from being recomputed on every keystroke.
+  const structural = useMemo<Filters>(
+    () => ({ types: viewFilters.types, statuses: viewFilters.statuses, search: "" }),
+    [viewFilters.types, viewFilters.statuses],
+  );
+  const kg = useMemo(() => (doc ? knowledgeView(doc, structural) : null), [doc, structural]);
+  const dag = useMemo(() => (doc ? dagView(doc, structural, subgraph) : null), [doc, structural, subgraph]);
 
   const coverage = doc?.coverage.find((c) => c.source_file === active.name);
   const pct = (n: number, total: number) => (total === 0 ? 0 : Math.round((n / total) * 100));
@@ -377,7 +385,7 @@ export function Workbench() {
               <FilterBar filters={filters} onChange={setFilters} />
               <TabsContent value="graph" className="flex min-h-0 flex-1 flex-col" data-testid="graph-area">
                 {doc && kg ? (
-                  <GraphCanvas view={kg} filters={filters} selection={selection} onSelect={select} dark={theme === "dark"} label="Knowledge graph" />
+                  <GraphCanvas view={kg} filters={viewFilters} selection={selection} onSelect={select} dark={theme === "dark"} label="Knowledge graph" />
                 ) : (
                   <div className="flex h-full items-center justify-center p-6 text-center text-sm text-muted" data-testid="graph-empty">
                     Press “Analyze Prompt” to build the graph from the text on the left.
@@ -390,7 +398,7 @@ export function Workbench() {
                     <DagPanel doc={doc} onSelect={select} subgraph={subgraph} onToggleSubgraph={setSubgraph} />
                     <div className="min-h-0 flex-1">
                       {dag.nodes.length > 0 ? (
-                        <GraphCanvas view={dag} filters={filters} selection={selection} onSelect={select} dark={theme === "dark"} label="Execution DAG" />
+                        <GraphCanvas view={dag} filters={viewFilters} selection={selection} onSelect={select} dark={theme === "dark"} label="Execution DAG" />
                       ) : (
                         <div className="flex h-full items-center justify-center p-6 text-sm text-muted">No tasks, so there is nothing to order.</div>
                       )}

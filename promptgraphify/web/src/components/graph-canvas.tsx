@@ -227,7 +227,7 @@ function Canvas({ view, filters, selection, onSelect, dark, label }: Props) {
       nodesConnectable={false}
       elementsSelectable
       onlyRenderVisibleElements={visibleNodes.length > 60}
-      minZoom={0.1}
+      minZoom={0.02} // a 700-node layout is taller than any screen: Fit must be able to show all of it
       maxZoom={2}
       proOptions={{ hideAttribution: true }}
       aria-label={label}
