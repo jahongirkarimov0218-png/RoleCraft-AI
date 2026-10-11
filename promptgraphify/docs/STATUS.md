@@ -7,35 +7,47 @@ Resume from this file if context is lost. Last updated: end of M1.
 | Stage | State |
 |-------|-------|
 | M0 Inspect | **done** |
-| M1 IR and fixtures | **done** — 136 tests pass (`.venv/bin/python -m pytest -q`): ontology, spans (emoji/CRLF/BOM), ids, Layer C validator, coverage, 33 fixtures with hand-written expectations |
-| M2 Vertical slice | next |
-| M3 Full parsers and analysis | not started |
-| M4 Interfaces | not started |
+| M1 IR and fixtures | **done** |
+| M2 Vertical slice | **done** (text / Markdown / XML) — see evidence below |
+| M3 Full parsers and analysis | next: YAML/JSON/messages front-ends, DAG, analyzer rules, query engine, DAG tab, diagnostics sidebar |
+| M4 Interfaces | not started: CLI, remaining API endpoints, SQLite, exports, diff |
 | M5 Semantic layer and hardening | not started |
 | M6 Handover | not started |
 
-## What exists (M1)
+## Evidence for M2 (commands run in this session)
 
-- `src/promptgraphify/`: `ontology.py` (6 node types, 11 relations, endpoint table, DAG projection),
-  `spans.py`, `ids.py`, `ir.py` (Pydantic IR + `GraphDocument`), `validate.py` (Layer C), `coverage.py`,
-  `security.py` (`sanitize_label`), `rules.py` (21 analyzer rules, mirrors spec §7).
-- `docs/ANALYSIS_SPEC.md` — the contract for parsers, edges, DAG, diagnostics, IDs, fixture format.
-- `tests/fixtures/NN_*/` — 33 fixtures (en/ru/uz; text, MD, XML, YAML, JSON, multi-file, BOM+CRLF+emoji,
-  empty, malformed XML/templates, cycles, loops, injection …) with `expected.json` written before any parser.
-  `tests/test_fixtures_wellformed.py` checks the expectations against the spec; `tests/dag_model.py`
-  re-derives the hand-written DAG orders independently.
+- `.venv/bin/python -m pytest -q` → 243 passed, 2 skipped (YAML/JSON fixtures wait for M3).
+- `cd web && npx vitest run` → 13 passed. `npx tsc --noEmit` → clean.
+- `cd web && npx playwright test` → 13 passed (12 desktop, 1 mobile Pixel 5): unique-token flow, two prompts
+  → two graphs, emoji offsets, edge rationale + evidence highlight, search/filter, editor-click selection,
+  keyboard list, markup not executed, stale banner, error recovery, theme/privacy badge, Ctrl+Enter, mobile.
+- The 31 text/MD/XML fixtures match their hand-written expectations (nodes and edges exact).
 
-## Next action (M2)
+## What exists now
 
-Layer A for plain text / Markdown / XML → builder → `POST /api/analyze` → Next.js UI (editor, Analyze,
-Knowledge Graph, inspector, span highlight) → e2e with a random unique token. The first parser test
-must be the fixtures: `tests/test_fixtures_parser.py` compares parser output with `expected.json`
-(nodes and edges exact; diagnostics non-exhaustive). Do not change an expectation to match the parser
-without a reason written into `DECISIONS.md`.
+- Core: scanner (`markup.py`), sentence splitter (`text.py`), classifier, placeholders, extraction,
+  relations, `analyze()`, `graphjson.py`; signal words in `signals/*.json`.
+- API: `POST /api/analyze`, `GET /api/health`, OpenAPI → `web/openapi.json` → `web/src/lib/api-types.ts`.
+- Web: Next.js workbench (CodeMirror editor, React Flow graph, node list, inspector, filters, theme).
+
+## Next action (M3)
+
+1. `yaml`/`json` front-ends (string values keep exact spans; escapes → `decoded_text`), un-skip fixtures 06/07.
+2. Execution DAG (`dag.py`), diagnostics (`analyzer.py`, each rule with a positive and a negative test),
+   `tests/test_fixtures_analysis.py` (diagnostics + DAG expectations), query engine (8 queries).
+3. UI: DAG tab, diagnostics sidebar, edge evidence polish.
+
+## Known limitations so far (honest list)
+
+- Classification is signal-word based; the fixtures were written by the same author as the rules, so the
+  86/86 sentence-classification match proves consistency, not accuracy. A separate evaluation set comes in M5.
+- Tone adjectives without a format/limit word ("Be kind to every user") are not classified: they stay
+  *uncovered* (reported, never guessed).
+- `OVERRIDES` from role precedence alone, `PRODUCES` for output files, and multi-tool JSON arrays are not implemented.
 
 ## Known blockers / NOT VERIFIED so far
 
 - Docker daemon unreachable → Docker build NOT VERIFIED (see D-008).
-- No parser, API or UI yet; acceptance criteria 1–12 are all still unverified.
+- Acceptance criteria 3–5, 7 are verified for text/MD/XML only; 6, 8–11 still open (M3/M4).
 - Tooling note: the file-writing tool decodes `\uXXXX` escapes in file content; write invisible or
   special characters (BOM, bidi marks) via a script using `chr()`, then check the bytes.

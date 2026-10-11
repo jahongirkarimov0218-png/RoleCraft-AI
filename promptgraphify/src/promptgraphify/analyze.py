@@ -16,6 +16,7 @@ from .coverage import compute_coverage
 from .extract import Draft, SourceData, extract_source
 from .ids import disambiguate, edge_id, named_key, node_id, text_key
 from .ir import (
+    SCHEMA_VERSION,
     AnalysisConfig,
     Edge,
     Evidence,
@@ -24,6 +25,7 @@ from .ir import (
     RoleScope,
     SourceFile,
     ToolInfo,
+    empty_dag,
 )
 from .ontology import RELATIONS
 from .relations import DraftEdge, Linked, link
@@ -119,6 +121,7 @@ def _node(d: Draft, nid: str) -> Node:
         metadata=meta,
         extraction_method=f"deterministic:{d.rule}",
         confidence=d.confidence,
+        validation_status="unverified",
     )
 
 
@@ -176,7 +179,7 @@ def analyze(
     max_input_chars: int = DEFAULT_MAX_INPUT_CHARS,
 ) -> GraphDocument:
     """Analyse ``inputs`` ({path: text}). ``max_input_chars`` is a runtime guard, not part of the result."""
-    config = config or AnalysisConfig()
+    config = config or AnalysisConfig(layer_b=False)
     pairs = sorted(dict(inputs).items() if isinstance(inputs, Mapping) else inputs)
     if not pairs:
         raise AnalysisError("no_input", "no input files")
@@ -199,6 +202,7 @@ def analyze(
         coverage.append(compute_coverage(s.path, s.text, spans, [Span(start=a, end=b) for a, b in s.parsed.structural]))
 
     doc = GraphDocument(
+        schema_version=SCHEMA_VERSION,
         tool=ToolInfo(version=__version__),
         analyzer_version=__version__,
         graph_id=compute_graph_id(pairs, config, __version__),
@@ -207,6 +211,9 @@ def analyze(
         nodes=nodes,
         edges=edges,
         coverage=coverage,
+        diagnostics=[],
+        dag=empty_dag(),
+        warnings=[],
     )
     assert_valid(doc)
     return doc.model_copy(update={"nodes": [n.model_copy(update={"validation_status": "verified"}) for n in doc.nodes]})

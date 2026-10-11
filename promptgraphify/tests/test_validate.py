@@ -224,7 +224,8 @@ def diag(**kw) -> Diagnostic:
     base = dict(
         id="d1", rule_id="variable.undeclared", severity="warning", certainty="proven",
         detection="deterministic", description="x", evidence=[evidence(TEXT, "{{query}}")],
-        affected_nodes=["ctx:-:query"], suggested_fix="Declare it.",
+        affected_nodes=["ctx:-:query"],
+        affected_edges=[], suggested_fix="Declare it.",
     )  # fmt: skip
     base.update(kw)
     return Diagnostic(**base)

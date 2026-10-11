@@ -8,7 +8,18 @@ import hashlib
 from promptgraphify import __version__
 from promptgraphify.coverage import compute_coverage
 from promptgraphify.ids import edge_id
-from promptgraphify.ir import Edge, Evidence, GraphDocument, Node, SourceFile, ToolInfo
+from promptgraphify.ir import (
+    SCHEMA_VERSION,
+    AnalysisConfig,
+    Edge,
+    Evidence,
+    GraphDocument,
+    Node,
+    RoleScope,
+    SourceFile,
+    ToolInfo,
+    empty_dag,
+)
 from promptgraphify.spans import Span
 
 FILE = "prompt.txt"
@@ -20,6 +31,8 @@ def source_file(text: str, path: str = FILE) -> SourceFile:
         text=text,
         sha256=hashlib.sha256(text.encode("utf-8")).hexdigest(),
         length=len(text),
+        has_bom=False,
+        newline="none",
     )
 
 
@@ -45,6 +58,8 @@ def make_node(text: str, node_id: str, node_type: str, quote: str, occurrence: i
         extraction_method="deterministic:test",
         confidence=1.0,
         validation_status="verified",
+        decoded_text=None,
+        role_scope=RoleScope(role=None, agent=None),
     )
     base.update(kw)
     return Node(**base)
@@ -64,6 +79,8 @@ def make_edge(text: str, relation: str, source: str, target: str, quotes: list[s
         evidence=[evidence(text, q) for q in quotes],
         status="EXTRACTED",
         reference=quotes[0],
+        rule=None,
+        metadata={},
         extraction_method="deterministic:test",
         confidence=1.0,
     )
@@ -74,6 +91,7 @@ def make_edge(text: str, relation: str, source: str, target: str, quotes: list[s
 def make_doc(text: str, nodes: list[Node], edges: list[Edge] | None = None, **kw) -> GraphDocument:
     cov = compute_coverage(FILE, text, [n.source_span for n in nodes], [])
     base = dict(
+        schema_version=SCHEMA_VERSION,
         tool=ToolInfo(version=__version__),
         analyzer_version=__version__,
         graph_id="test",
@@ -81,6 +99,10 @@ def make_doc(text: str, nodes: list[Node], edges: list[Edge] | None = None, **kw
         nodes=nodes,
         edges=edges or [],
         coverage=[cov],
+        config=AnalysisConfig(layer_b=False),
+        diagnostics=[],
+        dag=empty_dag(),
+        warnings=[],
     )
     base.update(kw)
     return GraphDocument(**base)

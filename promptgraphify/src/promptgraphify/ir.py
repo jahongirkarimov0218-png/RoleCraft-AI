@@ -28,14 +28,17 @@ EXTRACTION_METHOD_PATTERN = r"^(deterministic|llm):[A-Za-z0-9_.\-]+$"
 
 
 class _Model(BaseModel):
+    """Every field is required (nullable ones included): producers state everything explicitly, and the
+    generated OpenAPI / TypeScript types therefore have no optional fields to second-guess."""
+
     model_config = ConfigDict(extra="forbid")
 
 
 class RoleScope(_Model):
     """Who speaks / which agent owns a unit. Replaces extra node types (ontology is closed)."""
 
-    role: MessageRole | None = None
-    agent: str | None = None
+    role: MessageRole | None
+    agent: str | None
 
 
 class Evidence(_Model):
@@ -59,13 +62,13 @@ class Node(_Scored):
     label: str
     description: str
     original_text: str  # raw slice of the source: source[start:end] == original_text
-    decoded_text: str | None = None  # escapes opened / indentation removed; never used for spans
+    decoded_text: str | None  # escapes opened / indentation removed; never used for spans
     source_file: str
     source_span: Span
-    role_scope: RoleScope = Field(default_factory=RoleScope)
-    metadata: dict[str, JsonValue] = Field(default_factory=dict)
+    role_scope: RoleScope
+    metadata: dict[str, JsonValue]
     extraction_method: str = Field(pattern=EXTRACTION_METHOD_PATTERN)
-    validation_status: ValidationStatus = "unverified"
+    validation_status: ValidationStatus
 
 
 class Edge(_Scored):
@@ -77,11 +80,11 @@ class Edge(_Scored):
     evidence: list[Evidence]
     status: EdgeStatus
     # EXTRACTED: literal text inside one evidence span that makes the link explicit.
-    reference: str | None = None
+    reference: str | None
     # INFERRED: name of the deterministic rule (e.g. ``scope.section``) or of the LLM adapter.
-    rule: str | None = None
+    rule: str | None
     extraction_method: str = Field(pattern=EXTRACTION_METHOD_PATTERN)
-    metadata: dict[str, JsonValue] = Field(default_factory=dict)
+    metadata: dict[str, JsonValue]
 
 
 class Diagnostic(_Model):
@@ -91,9 +94,9 @@ class Diagnostic(_Model):
     certainty: Certainty
     detection: Detection
     description: str
-    evidence: list[Evidence] = Field(default_factory=list)
-    affected_nodes: list[str] = Field(default_factory=list)
-    affected_edges: list[str] = Field(default_factory=list)
+    evidence: list[Evidence]
+    affected_nodes: list[str]
+    affected_edges: list[str]
     suggested_fix: str
 
 
@@ -102,8 +105,8 @@ class SourceFile(_Model):
     text: str
     sha256: str
     length: int  # code points
-    has_bom: bool = False
-    newline: Literal["none", "lf", "crlf", "cr", "mixed"] = "none"
+    has_bom: bool
+    newline: Literal["none", "lf", "crlf", "cr", "mixed"]
 
 
 class SourceCoverage(_Model):
@@ -114,8 +117,8 @@ class SourceCoverage(_Model):
     covered: int
     structural: int
     uncovered: int
-    structural_spans: list[Span] = Field(default_factory=list)
-    uncovered_spans: list[Span] = Field(default_factory=list)
+    structural_spans: list[Span]
+    uncovered_spans: list[Span]
 
     @property
     def ratio(self) -> float:
@@ -127,9 +130,9 @@ class DagEdge(_Model):
     target: str
     relation: Relation
     graph_edge: str  # id of the knowledge-graph edge this arrow was projected from
-    conditional: bool = False
-    condition: str | None = None
-    loop: bool = False
+    conditional: bool
+    condition: str | None
+    loop: bool
 
 
 class UnresolvedDependency(_Model):
@@ -152,17 +155,17 @@ class MetricValue(_Model):
 
 
 class DagView(_Model):
-    status: Literal["ok", "blocked", "empty"] = "empty"
-    vertices: list[str] = Field(default_factory=list)
-    edges: list[DagEdge] = Field(default_factory=list)
-    topological_order: list[str] = Field(default_factory=list)
-    critical_path: list[str] = Field(default_factory=list)
-    unresolved: list[UnresolvedDependency] = Field(default_factory=list)
-    cycles: list[CycleReport] = Field(default_factory=list)
-    acyclic_subgraph: list[DagEdge] | None = None
-    removed_for_acyclic: list[str] = Field(default_factory=list)  # edge ids dropped, never silent
-    loops: list[str] = Field(default_factory=list)
-    metrics: list[MetricValue] = Field(default_factory=list)
+    status: Literal["ok", "blocked", "empty"]
+    vertices: list[str]
+    edges: list[DagEdge]
+    topological_order: list[str]
+    critical_path: list[str]
+    unresolved: list[UnresolvedDependency]
+    cycles: list[CycleReport]
+    acyclic_subgraph: list[DagEdge] | None
+    removed_for_acyclic: list[str]  # edge ids dropped, never silent
+    loops: list[str]
+    metrics: list[MetricValue]
 
 
 class ToolInfo(_Model):
@@ -171,24 +174,31 @@ class ToolInfo(_Model):
 
 
 class AnalysisConfig(_Model):
-    layer_b: bool = False  # optional LLM extraction; off by default
+    layer_b: bool  # optional LLM extraction; off by default
 
 
 class GraphDocument(_Model):
     """The content of graph.json. No timestamps or host data: same input -> same bytes."""
 
-    schema_version: str = SCHEMA_VERSION
+    schema_version: str
     tool: ToolInfo
     analyzer_version: str
     graph_id: str
-    config: AnalysisConfig = Field(default_factory=AnalysisConfig)
+    config: AnalysisConfig
     sources: list[SourceFile]
-    nodes: list[Node] = Field(default_factory=list)
-    edges: list[Edge] = Field(default_factory=list)
-    diagnostics: list[Diagnostic] = Field(default_factory=list)
-    coverage: list[SourceCoverage] = Field(default_factory=list)
-    dag: DagView = Field(default_factory=DagView)
-    warnings: list[str] = Field(default_factory=list)
+    nodes: list[Node]
+    edges: list[Edge]
+    diagnostics: list[Diagnostic]
+    coverage: list[SourceCoverage]
+    dag: DagView
+    warnings: list[str]
 
     def node_by_id(self) -> dict[str, Node]:
         return {n.id: n for n in self.nodes}
+
+
+def empty_dag() -> DagView:
+    return DagView(
+        status="empty", vertices=[], edges=[], topological_order=[], critical_path=[], unresolved=[],
+        cycles=[], acyclic_subgraph=None, removed_for_acyclic=[], loops=[], metrics=[],
+    )  # fmt: skip
