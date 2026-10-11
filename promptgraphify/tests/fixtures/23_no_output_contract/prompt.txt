@@ -1,0 +1,2 @@
+You are a travel advisor.
+Recommend three cities for a weekend trip.

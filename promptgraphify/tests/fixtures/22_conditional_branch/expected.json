@@ -1,0 +1,92 @@
+{
+  "topics": [
+    "conditional"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "esc",
+      "type": "TaskNode",
+      "quote": "If {{priority}} is high, escalate the ticket to a human."
+    },
+    {
+      "key": "ack",
+      "type": "TaskNode",
+      "quote": "Otherwise, reply with a standard acknowledgement."
+    },
+    {
+      "key": "priority",
+      "type": "ContextNode",
+      "quote": "{{priority}}",
+      "declared": false
+    }
+  ],
+  "edges": [
+    {
+      "relation": "DEPENDS_ON",
+      "source": "esc",
+      "target": "priority",
+      "status": "EXTRACTED",
+      "evidence": [
+        "{{priority}}"
+      ],
+      "reference": "{{priority}}"
+    },
+    {
+      "relation": "CONDITIONALLY_EXECUTES",
+      "source": "priority",
+      "target": "esc",
+      "status": "EXTRACTED",
+      "evidence": [
+        "If {{priority}} is high"
+      ],
+      "reference": "{{priority}}",
+      "metadata": {
+        "condition": "If {{priority}} is high"
+      }
+    },
+    {
+      "relation": "CONDITIONALLY_EXECUTES",
+      "source": "priority",
+      "target": "ack",
+      "status": "INFERRED",
+      "evidence": [
+        "Otherwise, reply with a standard acknowledgement."
+      ],
+      "rule": "condition.otherwise",
+      "metadata": {
+        "condition": "not (If {{priority}} is high)"
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "variable.undeclared",
+      "certainty": "proven",
+      "nodes": [
+        "priority"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "SystemNode",
+    "ConstraintNode"
+  ],
+  "dag": {
+    "status": "ok",
+    "topological_order": [
+      "priority",
+      "esc",
+      "ack"
+    ],
+    "critical_path": [
+      "priority",
+      "esc"
+    ]
+  },
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "absent_rules": [],
+  "uncovered": []
+}

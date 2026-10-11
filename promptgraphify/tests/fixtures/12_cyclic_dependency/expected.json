@@ -1,0 +1,115 @@
+{
+  "topics": [
+    "cyclic_dependency"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "t1",
+      "type": "TaskNode",
+      "quote": "Draft the report using the outline from step 3."
+    },
+    {
+      "key": "t2",
+      "type": "TaskNode",
+      "quote": "Review the draft from step 1."
+    },
+    {
+      "key": "t3",
+      "type": "TaskNode",
+      "quote": "Write the outline using the review from step 2."
+    }
+  ],
+  "edges": [
+    {
+      "relation": "PRECEDES",
+      "source": "t1",
+      "target": "t2",
+      "status": "EXTRACTED",
+      "evidence": [
+        "1. Draft the report using the outline from step 3.",
+        "2. Review the draft from step 1."
+      ],
+      "reference": "2."
+    },
+    {
+      "relation": "PRECEDES",
+      "source": "t2",
+      "target": "t3",
+      "status": "EXTRACTED",
+      "evidence": [
+        "2. Review the draft from step 1.",
+        "3. Write the outline using the review from step 2."
+      ],
+      "reference": "3."
+    },
+    {
+      "relation": "DEPENDS_ON",
+      "source": "t1",
+      "target": "t3",
+      "status": "EXTRACTED",
+      "evidence": [
+        "the outline from step 3"
+      ],
+      "reference": "step 3"
+    },
+    {
+      "relation": "DEPENDS_ON",
+      "source": "t2",
+      "target": "t1",
+      "status": "EXTRACTED",
+      "evidence": [
+        "draft from step 1"
+      ],
+      "reference": "step 1"
+    },
+    {
+      "relation": "DEPENDS_ON",
+      "source": "t3",
+      "target": "t2",
+      "status": "EXTRACTED",
+      "evidence": [
+        "review from step 2"
+      ],
+      "reference": "step 2"
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "dependency.cycle",
+      "certainty": "proven",
+      "nodes": [
+        "t1",
+        "t2",
+        "t3"
+      ]
+    },
+    {
+      "rule_id": "task.unreachable",
+      "certainty": "proven",
+      "nodes": [
+        "t1",
+        "t2",
+        "t3"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "SystemNode",
+    "ConstraintNode",
+    "ContextNode"
+  ],
+  "dag": {
+    "status": "blocked",
+    "cycle_nodes": [
+      "t1",
+      "t2",
+      "t3"
+    ]
+  },
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "absent_rules": [],
+  "uncovered": []
+}

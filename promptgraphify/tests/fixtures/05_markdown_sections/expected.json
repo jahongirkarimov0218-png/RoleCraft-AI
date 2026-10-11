@@ -1,0 +1,92 @@
+{
+  "topics": [
+    "markdown_instructions"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "goal",
+      "type": "TaskNode",
+      "quote": "Write release notes for the changes listed in {{changelog}}."
+    },
+    {
+      "key": "extract",
+      "type": "TaskNode",
+      "quote": "Extract the breaking changes."
+    },
+    {
+      "key": "flag",
+      "type": "TaskNode",
+      "quote": "Flag each breaking change with a warning sign."
+    },
+    {
+      "key": "summarize",
+      "type": "TaskNode",
+      "quote": "Summarize the remaining changes by category."
+    },
+    {
+      "key": "no_invent",
+      "type": "ConstraintNode",
+      "quote": "Never invent a change that is not in the changelog."
+    },
+    {
+      "key": "limit",
+      "type": "ConstraintNode",
+      "quote": "Use at most 120 words per category."
+    },
+    {
+      "key": "changelog",
+      "type": "ContextNode",
+      "quote": "{{changelog}}",
+      "declared": false
+    }
+  ],
+  "edges": [
+    {
+      "relation": "DEPENDS_ON",
+      "source": "goal",
+      "target": "changelog",
+      "status": "EXTRACTED",
+      "evidence": [
+        "{{changelog}}"
+      ],
+      "reference": "{{changelog}}"
+    },
+    {
+      "relation": "CONSTRAINS",
+      "source": [
+        "no_invent",
+        "limit"
+      ],
+      "target": [
+        "goal",
+        "extract",
+        "flag",
+        "summarize"
+      ],
+      "status": "INFERRED",
+      "evidence": [
+        "$source",
+        "$target"
+      ],
+      "rule": "scope.section"
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "variable.undeclared",
+      "certainty": "proven",
+      "nodes": [
+        "changelog"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "SystemNode"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "absent_rules": [],
+  "uncovered": []
+}

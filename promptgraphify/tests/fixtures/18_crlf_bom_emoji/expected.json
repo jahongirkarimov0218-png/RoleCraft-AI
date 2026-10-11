@@ -1,0 +1,41 @@
+{
+  "topics": [
+    "crlf_bom_non_bmp"
+  ],
+  "language": "en",
+  "bytes": {
+    "bom": true,
+    "crlf": true,
+    "non_bmp": true
+  },
+  "nodes": [
+    {
+      "key": "sys",
+      "type": "SystemNode",
+      "quote": "You are a friendly bot 😀."
+    },
+    {
+      "key": "greet",
+      "type": "TaskNode",
+      "quote": "Always greet the user with 👋 first."
+    },
+    {
+      "key": "no_sarcasm",
+      "type": "ConstraintNode",
+      "quote": "Never use sarcasm."
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "ContextNode"
+  ],
+  "absent_rules": [
+    "parse.malformed",
+    "variable.undeclared"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "edges": [],
+  "diagnostics": [],
+  "uncovered": []
+}

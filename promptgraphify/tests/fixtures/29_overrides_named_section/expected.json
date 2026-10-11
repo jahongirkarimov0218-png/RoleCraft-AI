@@ -1,0 +1,47 @@
+{
+  "topics": [
+    "overrides",
+    "instruction_hierarchy"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "limit",
+      "type": "ConstraintNode",
+      "quote": "Keep answers under 100 words."
+    },
+    {
+      "key": "prec",
+      "type": "SystemNode",
+      "quote": "These instructions take precedence over \"Style rules\" when the question is legal."
+    },
+    {
+      "key": "legal",
+      "type": "TaskNode",
+      "quote": "Answer legal questions in full detail."
+    }
+  ],
+  "edges": [
+    {
+      "relation": "OVERRIDES",
+      "source": "prec",
+      "target": "limit",
+      "status": "EXTRACTED",
+      "evidence": [
+        "take precedence over \"Style rules\""
+      ],
+      "reference": "\"Style rules\""
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "ContextNode"
+  ],
+  "absent_rules": [
+    "constraint.conflict"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "diagnostics": [],
+  "uncovered": []
+}

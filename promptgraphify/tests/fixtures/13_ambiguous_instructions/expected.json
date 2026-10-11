@@ -1,0 +1,49 @@
+{
+  "topics": [
+    "ambiguous_instruction"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "sys",
+      "type": "SystemNode",
+      "quote": "You are a helpful assistant."
+    },
+    {
+      "key": "make",
+      "type": "TaskNode",
+      "quote": "Make the answer good when appropriate."
+    },
+    {
+      "key": "provide",
+      "type": "TaskNode",
+      "quote": "Provide some relevant examples if needed."
+    }
+  ],
+  "uncovered": [
+    "Thanks in advance!"
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "instruction.ambiguous",
+      "certainty": "probable",
+      "nodes": [
+        "make",
+        "provide"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "ConstraintNode",
+    "ContextNode"
+  ],
+  "absent_rules": [
+    "variable.undeclared",
+    "constraint.conflict",
+    "role.conflict"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "edges": []
+}

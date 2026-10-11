@@ -1,0 +1,11 @@
+Classify the sentiment of the review as positive or negative.
+
+<example>
+Input: I loved the food!
+Output: positive
+</example>
+
+<example>
+Input: The waiter was rude.
+Output: negative
+</example>

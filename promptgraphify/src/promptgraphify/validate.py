@@ -148,8 +148,12 @@ def _check_edges(doc: GraphDocument, nodes: dict[str, Node], sources: dict, out:
                 )
         if e.status not in spec.allowed_status:
             out.append(Violation("edge.status_not_allowed", f"{e.relation} cannot be {e.status}", e.id))
-        if e.source == e.target and e.metadata.get("loop") is not True:
-            out.append(Violation("edge.self_loop", "self-loop without metadata.loop = true", e.id))
+        if e.source == e.target and not (
+            e.metadata.get("loop") is True or e.metadata.get("self_reference") is True
+        ):
+            out.append(
+                Violation("edge.self_loop", "self-loop without metadata.loop / metadata.self_reference", e.id)
+            )
         if not e.evidence:
             out.append(Violation("edge.evidence_empty", "every edge needs at least one evidence span", e.id))
         _check_evidence(e.evidence, sources, e.id, "edge", out)

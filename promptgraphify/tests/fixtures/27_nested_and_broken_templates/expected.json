@@ -1,0 +1,116 @@
+{
+  "topics": [
+    "nested_templates"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "t1",
+      "type": "TaskNode",
+      "quote": "Greet {{user.name}} and mention the {{ plan | upper }} plan."
+    },
+    {
+      "key": "t2",
+      "type": "TaskNode",
+      "quote": "Escalate to {{ {{manager}} }} if the plan is {{unfinished."
+    },
+    {
+      "key": "user",
+      "type": "ContextNode",
+      "quote": "{{user.name}}",
+      "declared": false
+    },
+    {
+      "key": "plan",
+      "type": "ContextNode",
+      "quote": "{{ plan | upper }}",
+      "declared": false
+    },
+    {
+      "key": "manager",
+      "type": "ContextNode",
+      "quote": "{{manager}}",
+      "declared": false
+    }
+  ],
+  "edges": [
+    {
+      "relation": "DEPENDS_ON",
+      "source": "t1",
+      "target": "user",
+      "status": "EXTRACTED",
+      "evidence": [
+        "{{user.name}}"
+      ],
+      "reference": "{{user.name}}"
+    },
+    {
+      "relation": "DEPENDS_ON",
+      "source": "t1",
+      "target": "plan",
+      "status": "EXTRACTED",
+      "evidence": [
+        "{{ plan | upper }}"
+      ],
+      "reference": "{{ plan | upper }}"
+    },
+    {
+      "relation": "DEPENDS_ON",
+      "source": "t2",
+      "target": "manager",
+      "status": "EXTRACTED",
+      "evidence": [
+        "{{manager}}"
+      ],
+      "reference": "{{manager}}"
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "template.malformed",
+      "certainty": "proven",
+      "nodes": [],
+      "evidence": [
+        "{{ {{manager}} }}"
+      ]
+    },
+    {
+      "rule_id": "template.malformed",
+      "certainty": "proven",
+      "nodes": [],
+      "evidence": [
+        "{{unfinished"
+      ]
+    },
+    {
+      "rule_id": "variable.undeclared",
+      "certainty": "proven",
+      "nodes": [
+        "user"
+      ]
+    },
+    {
+      "rule_id": "variable.undeclared",
+      "certainty": "proven",
+      "nodes": [
+        "plan"
+      ]
+    },
+    {
+      "rule_id": "variable.undeclared",
+      "certainty": "proven",
+      "nodes": [
+        "manager"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "SystemNode",
+    "ConstraintNode"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "absent_rules": [],
+  "uncovered": []
+}

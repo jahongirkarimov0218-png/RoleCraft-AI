@@ -1,0 +1,104 @@
+{
+  "topics": [
+    "multiple_agents"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "p_sys",
+      "type": "SystemNode",
+      "quote": "You are the planner agent.",
+      "agent": "Planner"
+    },
+    {
+      "key": "p_split",
+      "type": "TaskNode",
+      "quote": "Split the user's goal into subtasks.",
+      "agent": "Planner"
+    },
+    {
+      "key": "p_pass",
+      "type": "TaskNode",
+      "quote": "Pass the subtasks to the Researcher.",
+      "agent": "Planner"
+    },
+    {
+      "key": "r_sys",
+      "type": "SystemNode",
+      "quote": "You are the researcher agent.",
+      "agent": "Researcher"
+    },
+    {
+      "key": "r_collect",
+      "type": "TaskNode",
+      "quote": "Collect sources for each subtask using the web_search tool.",
+      "agent": "Researcher"
+    },
+    {
+      "key": "r_never",
+      "type": "ConstraintNode",
+      "quote": "Never cite a source that you have not opened.",
+      "agent": "Researcher"
+    },
+    {
+      "key": "web_search",
+      "type": "ToolNode",
+      "quote": "web_search",
+      "agent": "Researcher",
+      "defined": false
+    }
+  ],
+  "edges": [
+    {
+      "relation": "PRECEDES",
+      "source": "p_pass",
+      "target": "r_collect",
+      "status": "INFERRED",
+      "evidence": [
+        "$source",
+        "$target"
+      ],
+      "rule": "handoff.first_task"
+    },
+    {
+      "relation": "CALLS_TOOL",
+      "source": "r_collect",
+      "target": "web_search",
+      "status": "AMBIGUOUS",
+      "evidence": [
+        "using the web_search tool"
+      ],
+      "reference": "web_search"
+    },
+    {
+      "relation": "CONSTRAINS",
+      "source": "r_never",
+      "target": "r_collect",
+      "status": "INFERRED",
+      "evidence": [
+        "$source",
+        "$target"
+      ],
+      "rule": "scope.section"
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "tool.undefined",
+      "certainty": "probable",
+      "nodes": [
+        "web_search"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ExampleNode"
+  ],
+  "absent_rules": [
+    "role.conflict",
+    "dependency.cycle",
+    "variable.undeclared"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "uncovered": []
+}

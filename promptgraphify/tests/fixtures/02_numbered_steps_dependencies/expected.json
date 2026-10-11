@@ -1,0 +1,140 @@
+{
+  "topics": [
+    "multiple_dependencies",
+    "markdown_instructions"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "t1",
+      "type": "TaskNode",
+      "quote": "Extract the invoice number and total from {{invoice_text}}."
+    },
+    {
+      "key": "t2",
+      "type": "TaskNode",
+      "quote": "Using the result of step 1, look up the purchase order."
+    },
+    {
+      "key": "t3",
+      "type": "TaskNode",
+      "quote": "Compare the order total with the invoice total from step 2 and report mismatches."
+    },
+    {
+      "key": "invoice_text",
+      "type": "ContextNode",
+      "quote": "{{invoice_text}}",
+      "declared": false
+    },
+    {
+      "key": "no_guess",
+      "type": "ConstraintNode",
+      "quote": "Do not guess missing numbers."
+    }
+  ],
+  "edges": [
+    {
+      "relation": "PRECEDES",
+      "source": "t1",
+      "target": "t2",
+      "status": "EXTRACTED",
+      "evidence": [
+        "1. Extract the invoice number and total from {{invoice_text}}.",
+        "2. Using the result of step 1, look up the purchase order."
+      ],
+      "reference": "2."
+    },
+    {
+      "relation": "PRECEDES",
+      "source": "t2",
+      "target": "t3",
+      "status": "EXTRACTED",
+      "evidence": [
+        "2. Using the result of step 1, look up the purchase order.",
+        "3. Compare the order total with the invoice total from step 2 and report mismatches."
+      ],
+      "reference": "3."
+    },
+    {
+      "relation": "DEPENDS_ON",
+      "source": "t2",
+      "target": "t1",
+      "status": "EXTRACTED",
+      "evidence": [
+        "Using the result of step 1"
+      ],
+      "reference": "step 1"
+    },
+    {
+      "relation": "DEPENDS_ON",
+      "source": "t3",
+      "target": "t2",
+      "status": "EXTRACTED",
+      "evidence": [
+        "invoice total from step 2"
+      ],
+      "reference": "step 2"
+    },
+    {
+      "relation": "DEPENDS_ON",
+      "source": "t1",
+      "target": "invoice_text",
+      "status": "EXTRACTED",
+      "evidence": [
+        "{{invoice_text}}"
+      ],
+      "reference": "{{invoice_text}}"
+    },
+    {
+      "relation": "CONSTRAINS",
+      "source": "no_guess",
+      "target": [
+        "t1",
+        "t2",
+        "t3"
+      ],
+      "status": "INFERRED",
+      "evidence": [
+        "$source",
+        "$target"
+      ],
+      "rule": "scope.section"
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "variable.undeclared",
+      "certainty": "proven",
+      "nodes": [
+        "invoice_text"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "SystemNode"
+  ],
+  "absent_rules": [
+    "dependency.cycle",
+    "dependency.unresolved",
+    "task.unreachable"
+  ],
+  "dag": {
+    "status": "ok",
+    "topological_order": [
+      "invoice_text",
+      "t1",
+      "t2",
+      "t3"
+    ],
+    "critical_path": [
+      "invoice_text",
+      "t1",
+      "t2",
+      "t3"
+    ]
+  },
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "uncovered": []
+}

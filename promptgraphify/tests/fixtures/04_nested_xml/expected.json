@@ -1,0 +1,88 @@
+{
+  "topics": [
+    "nested_xml"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "sys",
+      "type": "SystemNode",
+      "quote": "You are a code review assistant.",
+      "role": "system"
+    },
+    {
+      "key": "t_read",
+      "type": "TaskNode",
+      "quote": "Read the diff in {{diff}}."
+    },
+    {
+      "key": "t_list",
+      "type": "TaskNode",
+      "quote": "List the problems you find."
+    },
+    {
+      "key": "c_tests",
+      "type": "ConstraintNode",
+      "quote": "Never approve code that lacks tests."
+    },
+    {
+      "key": "c_words",
+      "type": "ConstraintNode",
+      "quote": "Keep every comment under 50 words."
+    },
+    {
+      "key": "diff",
+      "type": "ContextNode",
+      "quote": "{{diff}}",
+      "declared": false
+    }
+  ],
+  "edges": [
+    {
+      "relation": "DEPENDS_ON",
+      "source": "t_read",
+      "target": "diff",
+      "status": "EXTRACTED",
+      "evidence": [
+        "{{diff}}"
+      ],
+      "reference": "{{diff}}"
+    },
+    {
+      "relation": "CONSTRAINS",
+      "source": [
+        "c_tests",
+        "c_words"
+      ],
+      "target": [
+        "t_read",
+        "t_list"
+      ],
+      "status": "INFERRED",
+      "evidence": [
+        "$source",
+        "$target"
+      ],
+      "rule": "scope.section"
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "variable.undeclared",
+      "certainty": "proven",
+      "nodes": [
+        "diff"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode"
+  ],
+  "absent_rules": [
+    "constraint.conflict",
+    "parse.malformed"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "uncovered": []
+}

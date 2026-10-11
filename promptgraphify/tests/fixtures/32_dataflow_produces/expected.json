@@ -1,0 +1,109 @@
+{
+  "topics": [
+    "produces",
+    "variables"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "t1",
+      "type": "TaskNode",
+      "quote": "Summarize {{article}} and save the result as {{summary}}."
+    },
+    {
+      "key": "t2",
+      "type": "TaskNode",
+      "quote": "Translate {{summary}} into Russian."
+    },
+    {
+      "key": "article",
+      "type": "ContextNode",
+      "quote": "{{article}}",
+      "declared": false
+    },
+    {
+      "key": "summary",
+      "type": "ContextNode",
+      "quote": "{{summary}}",
+      "occurrence": 1,
+      "declared": false,
+      "produced": true
+    }
+  ],
+  "edges": [
+    {
+      "relation": "PRECEDES",
+      "source": "t1",
+      "target": "t2",
+      "status": "EXTRACTED",
+      "evidence": [
+        "1. Summarize {{article}} and save the result as {{summary}}.",
+        "2. Translate {{summary}} into Russian."
+      ],
+      "reference": "2."
+    },
+    {
+      "relation": "DEPENDS_ON",
+      "source": "t1",
+      "target": "article",
+      "status": "EXTRACTED",
+      "evidence": [
+        "Summarize {{article}}"
+      ],
+      "reference": "{{article}}"
+    },
+    {
+      "relation": "PRODUCES",
+      "source": "t1",
+      "target": "summary",
+      "status": "EXTRACTED",
+      "evidence": [
+        "save the result as {{summary}}"
+      ],
+      "reference": "{{summary}}"
+    },
+    {
+      "relation": "DEPENDS_ON",
+      "source": "t2",
+      "target": "summary",
+      "status": "EXTRACTED",
+      "evidence": [
+        "Translate {{summary}} into Russian"
+      ],
+      "reference": "{{summary}}"
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "variable.undeclared",
+      "certainty": "proven",
+      "nodes": [
+        "article"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "SystemNode",
+    "ConstraintNode"
+  ],
+  "dag": {
+    "status": "ok",
+    "topological_order": [
+      "article",
+      "t1",
+      "summary",
+      "t2"
+    ],
+    "critical_path": [
+      "article",
+      "t1",
+      "summary",
+      "t2"
+    ]
+  },
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "absent_rules": [],
+  "uncovered": []
+}

@@ -1,0 +1,60 @@
+{
+  "topics": [
+    "simple_system_task"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "identity",
+      "type": "SystemNode",
+      "quote": "You are a customer support assistant for Acme Corp."
+    },
+    {
+      "key": "answer",
+      "type": "TaskNode",
+      "quote": "Answer the customer's question using the knowledge base."
+    },
+    {
+      "key": "no_pricing",
+      "type": "ConstraintNode",
+      "quote": "Never share internal pricing."
+    },
+    {
+      "key": "tone",
+      "type": "ConstraintNode",
+      "quote": "Reply in a polite tone."
+    }
+  ],
+  "uncovered": [
+    "Acme was founded in 1999."
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "output.contract_missing",
+      "certainty": "probable",
+      "nodes": []
+    },
+    {
+      "rule_id": "success.criteria_unclear",
+      "certainty": "probable",
+      "nodes": []
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode"
+  ],
+  "absent_rules": [
+    "variable.undeclared",
+    "variable.unused",
+    "tool.undefined",
+    "dependency.cycle",
+    "constraint.conflict",
+    "injection.indicator",
+    "instruction.duplicate",
+    "instruction.ambiguous",
+    "role.conflict"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "edges": []
+}

@@ -1,0 +1,51 @@
+{
+  "topics": [
+    "duplicates",
+    "id_collision"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "dup1",
+      "type": "ConstraintNode",
+      "quote": "Never share the password.",
+      "occurrence": 1,
+      "id_suffix": ""
+    },
+    {
+      "key": "brief",
+      "type": "ConstraintNode",
+      "quote": "Be brief."
+    },
+    {
+      "key": "dup2",
+      "type": "ConstraintNode",
+      "quote": "Never share the password.",
+      "occurrence": 2,
+      "id_suffix": "~2"
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "instruction.duplicate",
+      "certainty": "proven",
+      "nodes": [
+        "dup1",
+        "dup2"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "SystemNode",
+    "ContextNode",
+    "TaskNode"
+  ],
+  "absent_rules": [
+    "constraint.conflict"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "edges": [],
+  "uncovered": []
+}

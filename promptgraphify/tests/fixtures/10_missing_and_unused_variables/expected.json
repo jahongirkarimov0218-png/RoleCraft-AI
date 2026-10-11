@@ -1,0 +1,85 @@
+{
+  "topics": [
+    "missing_variable"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "customer_name",
+      "type": "ContextNode",
+      "quote": "customer_name: the customer's full name",
+      "declared": true
+    },
+    {
+      "key": "order_id",
+      "type": "ContextNode",
+      "quote": "order_id: the order number",
+      "declared": true
+    },
+    {
+      "key": "order_status",
+      "type": "ContextNode",
+      "quote": "{{order_status}}",
+      "declared": false
+    },
+    {
+      "key": "greet",
+      "type": "TaskNode",
+      "quote": "Greet {{customer_name}} and ask about {{order_status}}."
+    }
+  ],
+  "edges": [
+    {
+      "relation": "DEPENDS_ON",
+      "source": "greet",
+      "target": "customer_name",
+      "status": "EXTRACTED",
+      "evidence": [
+        "{{customer_name}}"
+      ],
+      "reference": "{{customer_name}}"
+    },
+    {
+      "relation": "DEPENDS_ON",
+      "source": "greet",
+      "target": "order_status",
+      "status": "EXTRACTED",
+      "evidence": [
+        "{{order_status}}"
+      ],
+      "reference": "{{order_status}}"
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "variable.undeclared",
+      "certainty": "proven",
+      "nodes": [
+        "order_status"
+      ]
+    },
+    {
+      "rule_id": "variable.unused",
+      "certainty": "proven",
+      "nodes": [
+        "order_id"
+      ]
+    },
+    {
+      "rule_id": "node.orphan",
+      "certainty": "proven",
+      "nodes": [
+        "order_id"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "SystemNode",
+    "ConstraintNode"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "absent_rules": [],
+  "uncovered": []
+}

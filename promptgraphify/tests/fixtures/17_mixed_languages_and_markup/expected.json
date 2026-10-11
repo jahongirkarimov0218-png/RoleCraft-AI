@@ -1,0 +1,100 @@
+{
+  "topics": [
+    "mixed_language",
+    "markdown_with_xml"
+  ],
+  "language": "en+ru",
+  "nodes": [
+    {
+      "key": "sys",
+      "type": "SystemNode",
+      "quote": "You are a polite support agent."
+    },
+    {
+      "key": "t1",
+      "type": "TaskNode",
+      "quote": "Greet the customer."
+    },
+    {
+      "key": "t2",
+      "type": "TaskNode",
+      "quote": "Спроси номер заказа."
+    },
+    {
+      "key": "t3",
+      "type": "TaskNode",
+      "quote": "Check the order status in <orders>{{orders_json}}</orders>."
+    },
+    {
+      "key": "orders",
+      "type": "ContextNode",
+      "quote": "{{orders_json}}",
+      "declared": false
+    }
+  ],
+  "edges": [
+    {
+      "relation": "PRECEDES",
+      "source": "t1",
+      "target": "t2",
+      "status": "EXTRACTED",
+      "evidence": [
+        "1. Greet the customer.",
+        "2. Спроси номер заказа."
+      ],
+      "reference": "2."
+    },
+    {
+      "relation": "PRECEDES",
+      "source": "t2",
+      "target": "t3",
+      "status": "EXTRACTED",
+      "evidence": [
+        "2. Спроси номер заказа.",
+        "3. Check the order status in <orders>{{orders_json}}</orders>."
+      ],
+      "reference": "3."
+    },
+    {
+      "relation": "DEPENDS_ON",
+      "source": "t3",
+      "target": "orders",
+      "status": "EXTRACTED",
+      "evidence": [
+        "{{orders_json}}"
+      ],
+      "reference": "{{orders_json}}"
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "variable.undeclared",
+      "certainty": "proven",
+      "nodes": [
+        "orders"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "ConstraintNode"
+  ],
+  "dag": {
+    "status": "ok",
+    "topological_order": [
+      "t1",
+      "t2",
+      "orders",
+      "t3"
+    ],
+    "critical_path": [
+      "t1",
+      "t2",
+      "t3"
+    ]
+  },
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "absent_rules": [],
+  "uncovered": []
+}

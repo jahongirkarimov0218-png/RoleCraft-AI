@@ -54,20 +54,33 @@ Applied top to bottom; the first match wins; `confidence` is the rule's document
    **ContextNode** (declared). [D]
 4. Context / data container (`<context>`, `<document(s)>`, `<user_input>`, heading `Context`,
    `Контекст`, `Kontekst`, `Retrieved documents`) → **ContextNode**. [D]
-5. Sentence-level, by signals [H]:
+5. Sentence-level, by signals [H]; first match wins:
    a. identity / role / hierarchy (`You are …`, `Act as`, `Your role is`, `Sen … san`, `Ты — …`,
-      "takes precedence over", "system messages outrank") → **SystemNode**
-   b. prohibition (`never`, `do not`, `must not`, `нельзя`, `никогда`, `hech qachon`, `mumkin emas`,
-      `taqiqlanadi`), limit (`only`, `at most`, `no more than`, `не более`, `faqat`, `ko'pi bilan`),
-      format/style/safety (`respond in`, `answer in JSON`, `tone`, `language`, `confidential`) with
-      **no** main task verb → **ConstraintNode**
-   c. a main task verb in imperative/obligation form (`summarize`, `call`, `extract`, `reply`,
-      `проверь`, `составь`, `tekshiring`, `yozing`) → **TaskNode**; embedded constraint signals are kept
-      in `metadata.embedded_signals` (mixed sentences are not split in v1)
-   d. none of the above → not a node; the sentence is **uncovered**.
-6. Sentences with both a prohibition signal and a task verb are ConstraintNode when the prohibition
-   governs the verb ("Do not reveal…") and TaskNode otherwise; such nodes carry
-   `metadata.mixed = true` and lower confidence.
+      "takes precedence over") → **SystemNode**
+   b. prohibition signal (`never`, `do not`, `must not`, `нельзя`, `никогда не`, `hech qachon`,
+      `mumkin emas`, `-ma` imperative with `hech`) → **ConstraintNode** (a prohibition beats any verb)
+   c. an imperative from the **task-verb list** that is also in the **strict** subset (`extract`,
+      `summarize`, `classify`, `translate`, `compare`, `check`, `verify`, `search`, `collect`, `split`,
+      `send`, `pass`, `escalate`, `fetch`, `review`, `draft`, `greet`, `list`, `repeat`, …) →
+      **TaskNode**; limit/format words in the same sentence are kept in `metadata.embedded_signals`
+   d. limit (`at most`, `no more than`, `under N words`, `only`, `не более`, `только`, `faqat`,
+      `ko'pi bilan`), format/style/safety (`tone`, `format`, `JSON`, `markdown`, `bullet`, `concise`,
+      `brief`, language names, `confidential`) → **ConstraintNode**
+   e. any other imperative / obligation with a task verb (`answer`, `reply`, `write`, `use`, `follow`,
+      `provide`, `javob ber`, `ответь`, …) → **TaskNode**
+   f. none of the above → not a node; the sentence is **uncovered** and reported as such.
+   (Strict verbs describe *what to do*; response verbs describe *how to answer*, so
+   "Reply in a polite tone." is a constraint but "Answer the question using the knowledge base." is a
+   task. Mixed sentences are not split in v1; they get `metadata.mixed = true` and confidence 0.6.)
+6. A unit that contains an explicit condition (`if`, `when`, `unless`, `если`, `agar`) keeps its type
+   and gets `metadata.condition` = the condition clause. A unit with a loop marker (`repeat`,
+   `keep … -ing`, `until`, `повторяй`, `takrorla`) gets `metadata.loop = {"stop_condition": text|null}`.
+7. XML-like tags. A tag is **syntax** (structural, opens a container) only when it starts a line
+   (indentation ignored) or forms a matched pair inside one unit (`<rule>…</rule>`). A tag in the
+   middle of a sentence ("between the <document> tags") is **text** and stays inside the sentence.
+   Unclosed tags are recovered to the end of their parent/line and reported as `parse.malformed`.
+   Role containers (`<system>`, `<developer>`, `<user>`, `<assistant>`, headings `System`, JSON/YAML
+   `role` keys) set `role_scope.role`; headings of the form `Agent: <name>` set `role_scope.agent`.
 
 Node `confidence`: 1.0 for syntactic extraction (rules 1–4 with explicit syntax, variables,
 declared tools); 0.8 for signal-based sentence classification with one unambiguous signal;
@@ -80,7 +93,9 @@ the confidence, `unverified` only before Layer C.
 - Recognised placeholders: `{{ name }}` (spaces optional), `${name}`, and `{name}` **only** in prose
   outside code fences and outside JSON/YAML syntax. Dotted paths (`{{user.name}}`) and filters
   (`{{ name | upper }}`) resolve to the root name (`user`, `name`).
-- `declared` = introduced by a declaration (rule 3 in §3) or a YAML/JSON `variables`/`inputs` key.
+- `declared` = introduced by a declaration (rule 3 in §3), a YAML/JSON `variables`/`inputs` key, or
+  assigned by a task (`save the result as {{x}}`, PRODUCES) — all three count as *defined* for
+  `variable.undeclared`.
   A variable that is only used has a ContextNode with `metadata.declared = false`; its span is the
   first use. A declared one has the declaration as span and every use as an evidence span on its
   edges. `metadata.usage_spans` lists all uses.
@@ -117,7 +132,26 @@ of its evidence spans (a name, a placeholder, a step marker). **INFERRED** needs
 | EXEMPLIFIES Example→Task/Constraint | nearest preceding unit of that type in the same container | INFERRED `proximity.preceding` 0.55 |
 | CONDITIONALLY_EXECUTES Context/Task→Task | the unit has an explicit condition (`if`, `когда`, `agar`); the condition mentions a variable (→ that Context) or a step (→ that Task); `metadata.condition` = the condition text; conditions that name nothing leave only `metadata.condition` on the node | EXTRACTED |
 
-Self-loops are forbidden except `metadata.loop = true`. Two nodes may have several relations;
+**Scope.** A constraint's *scope container* is its nearest ancestor container that is not a
+*constraint group* (container names from the `constraint_groups` signal list: rules, constraints,
+guidelines, safety, style rules, ограничения, правила, cheklovlar, qoidalar, `output`). If that scope is
+the document root or a message-role container, the constraint is **global** (`metadata.scope =
+"global"`); otherwise `scope.section` edges go to every TaskNode inside the scope container's subtree.
+**Handoff.** `pass/send … to the <Agent|file>` where the name resolves to an `Agent:` section or an
+input file → PRECEDES from that unit to the first TaskNode of the target, INFERRED `handoff.first_task`
+0.75, evidence = the handoff unit and the target unit.
+**Otherwise.** A unit starting with `otherwise`/`else`/`иначе`/`aks holda` directly after a conditional
+unit gets CONDITIONALLY_EXECUTES from the same gate, INFERRED `condition.otherwise` 0.8,
+`metadata.condition` = `not (<previous condition>)`.
+**Most specific relation wins.** A mention that yields DEPENDS_ON / PROVIDES_CONTEXT / CALLS_TOOL /
+CONSTRAINS / OVERRIDES does not also yield REFERENCES. REFERENCES is for a unit that names a
+section/tag/rule of another unit (`Follow the "Safety" section`) when no stronger relation applies.
+**Loops.** `repeat step N` / `go back to step N` → PRECEDES from the repeating unit to step N,
+EXTRACTED, `metadata = {loop: true, stop_condition: <until-clause or null>}`. A loop marker inside one
+unit without a step reference is only node metadata.
+
+Self-loops are forbidden except `metadata.loop = true` (deliberate repetition) and
+`metadata.self_reference = true` (a unit that depends on itself; always reported as `dependency.cycle`). Two nodes may have several relations;
 the same (relation, source, target) with different evidence gets one edge per distinct evidence.
 
 ## 6. Execution DAG projection
@@ -135,13 +169,14 @@ least one included edge. Included edges and the execution arrow (u → v = u fin
 
 Not projected: CONSTRAINS, PROVIDES_CONTEXT, REFERENCES, OVERRIDES, CONFLICTS_WITH, EXEMPLIFIES
 (they carry no ordering). Loop-marked edges are excluded from cycle detection and listed separately.
-Cycle found → the DAG is **blocked**: the result lists the strongly connected components, the edges
+A self-reference counts as a cycle of length 1. Cycle found → the DAG is **blocked**: the result lists the strongly connected components, the edges
 and their evidence spans, plus an optional `acyclic_subgraph` (cycle edges with the lowest
 confidence removed, every removal listed). Nothing is dropped silently.
 
-Metrics (always shipped with their definition string): *topological order* — Kahn, ties broken by
-(source offset, id); *critical path* — longest path by vertex count (unit weight) = longest chain of
-prerequisites, **not** time; *bottleneck* — vertex with the largest share of all source-to-sink paths
+Metrics (always shipped with their definition string): *topological order* — Kahn, always taking the
+ready vertex with the smallest (source offset, id); *critical path* — longest path by vertex count (unit weight) = longest chain of
+prerequisites, **not** time; among equal-length paths the one whose vertex offsets are
+lexicographically smallest; *bottleneck* — vertex with the largest share of all source-to-sink paths
 passing through it (path-dominance), reported only if the share ≥ 0.5 and the graph has ≥ 3 vertices;
 *most dependencies* — vertex with most ancestors in the DAG (transitive prerequisites) and, separately,
 most direct DEPENDS_ON edges.
@@ -166,7 +201,7 @@ A semantic finding (conflict, ambiguity, injection) is never `proven`.
 | `dependency.cycle` | cycle in the projected DAG | D | proven (probable if an INFERRED edge is on the cycle) |
 | `dependency.unresolved` | names a step/node that does not exist | D | proven |
 | `task.unreachable` | task whose every prerequisite chain sits inside a cycle or an unresolved dependency | D | proven |
-| `node.orphan` | node with no edges (System nodes excluded) | D | proven |
+| `node.orphan` | Context, Tool or Example node with no edge, or a non-global Constraint with no edge (Task, System and global-scope Constraint nodes are never orphans) | D | proven |
 | `instruction.duplicate` | same normalised text twice (exact) | D | proven |
 | `constraint.conflict` | contradictory instructions | H | probable |
 | `role.conflict` | two different identities in one scope | H | probable |
@@ -192,16 +227,22 @@ by evidence offset).
 
 ## 9. Fixture expectation format
 
-`tests/fixtures/<name>/input files` + `expected.json`:
+`tests/fixtures/<name>/` holds the input file(s) and `expected.json`:
 
 ```
-nodes[]       {key, type, file?, quote, occurrence?, role?, agent?, declared?, defined?}
-edges[]       {relation, source: key, target: key, status, rule?, reference?, evidence: [quote…]}
-diagnostics[] {rule_id, certainty, nodes: [key…]}
-absent_types[]  node types that must not appear
-absent_rules[]  diagnostic rules that must not fire
-uncovered[]   quotes that must be reported as uncovered
+topics[], language, review_status   metadata only
+nodes[]       {key, type, quote, file?, occurrence?, role?, agent?, declared?, defined?, decoded?,
+               id_suffix?, span_precision?}
+edges[]       {relation, source, target, status, rule?, reference?, evidence: [quote | {quote, occurrence, file}],
+               metadata?}          (source/target may be lists: all pairs are expanded)
+diagnostics[] {rule_id, certainty, nodes: [key…]}      (non-exhaustive: listed ones must appear)
+absent_types[]    node types that must not appear
+absent_rules[]    diagnostic rules that must not fire
+uncovered[]       quotes the analyzer must report as uncovered (this list is exact)
+dag?              {status, topological_order?, critical_path?, cycle_nodes?, loops?}
+bytes?            {bom, crlf, non_bmp}  — what the input file must really contain
 ```
 
-`quote` is a literal substring of the input file (the test resolves it to a span and fails if it is
-missing or ambiguous without `occurrence`). The node list is **exact**: any additional node is a failure.
+`quote` is a literal substring of the input (the test resolves it to a span; a quote that is missing or
+ambiguous without `occurrence` makes the fixture invalid). **Nodes and edges are exact sets:** any extra
+node or edge is a failure.

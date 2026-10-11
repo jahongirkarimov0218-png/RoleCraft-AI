@@ -60,3 +60,33 @@ Docker CLI 29.8.2 exists but the daemon is **not reachable** (`/var/run/docker.s
 `docker build` is **NOT VERIFIED** unless a daemon can be started inside the allowed scope (M6).
 No `ai-engineer-roadmap` plugin is installed (`ListPlugins` → empty) → that report line is N/A.
 Status: accepted.
+
+## D-009 · Python floor 3.12
+**FACT**: `uv sync` with `requires-python >=3.11` failed because networkx 3.7 requires Python ≥ 3.12
+(`<3.14.1 | >3.14.1`). Floor raised to 3.12; the lockfile pins networkx 3.7, pydantic 2.14.0,
+fastapi 0.143.0, uvicorn 0.54.0, pyyaml 6.0.3. Tested only on CPython 3.13.16. Status: accepted.
+
+## D-010 · Fixture expectations: what is exact, what is not
+Nodes and edges are compared as exact sets; diagnostics are non-exhaustive (listed ones must appear
+with the stated node set, `absent_rules` must not fire); `uncovered` is exact. Reason: granularity and
+edges are the bottleneck and must not drift; diagnostic completeness is covered by per-rule positive and
+negative analyzer tests in M3. Expectations were written from the fixture text and `ANALYSIS_SPEC.md`
+before any parser existed. The labels are `review_status: unreviewed` — I wrote them, nobody else has
+checked them. Status: accepted.
+
+## D-011 · Classification priority (sentence level)
+Prohibition > strict task verb > limit/format/style signal > other task verb > uncovered
+(ANALYSIS_SPEC §3.5). Chosen so "Reply in a polite tone." is a constraint while "Answer the question
+using the knowledge base." and "Break the goal into at most 5 subtasks." are tasks. **ASSUMPTION**:
+verb lists in `signals/*.json` are incomplete by nature; unknown verbs lead to *uncovered*, never to a
+guessed node. Status: accepted, to be re-checked against real-world prompts in M5.
+
+## D-012 · Global constraints are not materialised as edges
+A constraint whose scope is the document root or a message-role container applies to everything; it
+carries `metadata.scope = "global"` and queries add it with the label "global scope". Reason: C
+constraints × T tasks edges make 100+ node graphs unreadable and add no information. Status: accepted.
+
+## D-013 · Self-reference and loops
+`metadata.loop = true` marks deliberate repetition (excluded from cycle detection; needs a stop
+condition, otherwise `loop.no_stop_condition`). `metadata.self_reference = true` marks a unit that
+depends on itself (always a cycle of length 1). Status: accepted.

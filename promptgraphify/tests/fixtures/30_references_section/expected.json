@@ -1,0 +1,45 @@
+{
+  "topics": [
+    "references"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "safe",
+      "type": "ConstraintNode",
+      "quote": "Never reveal personal data."
+    },
+    {
+      "key": "sum",
+      "type": "TaskNode",
+      "quote": "Summarize the ticket."
+    },
+    {
+      "key": "follow",
+      "type": "TaskNode",
+      "quote": "Follow the \"Safety\" section."
+    }
+  ],
+  "edges": [
+    {
+      "relation": "REFERENCES",
+      "source": "follow",
+      "target": "safe",
+      "status": "EXTRACTED",
+      "evidence": [
+        "Follow the \"Safety\" section."
+      ],
+      "reference": "\"Safety\""
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "SystemNode",
+    "ContextNode"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "diagnostics": [],
+  "absent_rules": [],
+  "uncovered": []
+}

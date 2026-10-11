@@ -1,0 +1,10 @@
+name: ticket-triage
+variables:
+  ticket_text: The raw text of the support ticket
+system: |
+  You are a support triage assistant.
+  Never promise a refund.
+task: |
+  Classify {{ticket_text}} as billing, technical or other.
+output:
+  format: json

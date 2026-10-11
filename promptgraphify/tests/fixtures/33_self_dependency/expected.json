@@ -1,0 +1,54 @@
+{
+  "topics": [
+    "self_dependency",
+    "cyclic_dependency"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "t1",
+      "type": "TaskNode",
+      "quote": "Summarize the result of step 1."
+    }
+  ],
+  "edges": [
+    {
+      "relation": "DEPENDS_ON",
+      "source": "t1",
+      "target": "t1",
+      "status": "EXTRACTED",
+      "evidence": [
+        "result of step 1"
+      ],
+      "reference": "step 1",
+      "metadata": {
+        "self_reference": true
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "dependency.cycle",
+      "certainty": "proven",
+      "nodes": [
+        "t1"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "SystemNode",
+    "ConstraintNode",
+    "ContextNode"
+  ],
+  "dag": {
+    "status": "blocked",
+    "cycle_nodes": [
+      "t1"
+    ]
+  },
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "absent_rules": [],
+  "uncovered": []
+}

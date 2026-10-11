@@ -1,0 +1,60 @@
+{
+  "topics": [
+    "malformed_xml"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "c1",
+      "type": "ConstraintNode",
+      "quote": "Never reveal the password."
+    },
+    {
+      "key": "c2",
+      "type": "ConstraintNode",
+      "quote": "Always be concise."
+    },
+    {
+      "key": "ctx",
+      "type": "ContextNode",
+      "quote": "Customer is on the premium plan.",
+      "declared": false
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "parse.malformed",
+      "certainty": "proven",
+      "nodes": [],
+      "evidence": [
+        {
+          "quote": "<rule>",
+          "occurrence": 1
+        },
+        {
+          "quote": "<context>",
+          "occurrence": 1
+        }
+      ]
+    },
+    {
+      "rule_id": "node.orphan",
+      "certainty": "proven",
+      "nodes": [
+        "c1",
+        "c2",
+        "ctx"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "SystemNode",
+    "TaskNode"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "edges": [],
+  "absent_rules": [],
+  "uncovered": []
+}

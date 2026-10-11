@@ -1,0 +1,22 @@
+{
+  "topics": [
+    "empty_input"
+  ],
+  "language": "en",
+  "nodes": [],
+  "diagnostics": [
+    {
+      "rule_id": "input.empty",
+      "certainty": "proven",
+      "nodes": []
+    }
+  ],
+  "dag": {
+    "status": "empty"
+  },
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "edges": [],
+  "absent_types": [],
+  "absent_rules": [],
+  "uncovered": []
+}
