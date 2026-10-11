@@ -87,8 +87,8 @@ uv run promptgraphify analyze prompt.md --fail-on error              # exit 1 if
 
 uv run promptgraphify validate prompt.md                             # list diagnostics; exit 1 on errors
 uv run promptgraphify validate --graph out/graph.json                # check a graph.json against the invariants
-uv run promptgraphify explain "invoice_text" prompt.md               # one node, all its edges and their evidence
-uv run promptgraphify path "step 1" "step 3" prompt.md               # shortest path between two nodes
+uv run promptgraphify explain invoice_text prompt.md                 # one node, all its edges and their evidence
+uv run promptgraphify path "Compare the order total" invoice_text prompt.md   # shortest directed path (--undirected to ignore direction)
 uv run promptgraphify query --list                                   # the 8 named queries
 uv run promptgraphify query execution_bottleneck prompt.md
 uv run promptgraphify diff old_prompt.md new_prompt.md               # six kinds of change; exit 1 if different
@@ -191,6 +191,10 @@ scripts/ci-local.sh                                # every step of .github/workf
 uv run python -m promptgraphify.evalkit --split dev       # extraction evaluation (eval/README.md)
 uv run python -m tests.measure_perf                       # backend timings (docs/PERFORMANCE.md)
 ```
+
+The end-to-end tests start their own servers (API on 8000, UI on 3100, a fake LLM provider on 8002), so stop a running
+`promptgraphify serve` first. They expect the virtual environment that `uv sync` creates (`PG_PYTHON` points at another
+interpreter) and use Playwright's Chromium (`PG_CHROMIUM` names a different binary).
 
 If you change the API, regenerate the typed client: `uv run promptgraphify openapi > web/openapi.json && cd web && npm run gen:api`.
 

@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
 
 // End-to-end tests run against the real backend and the production build of the web app. No mocks of the
@@ -5,8 +6,12 @@ import { defineConfig, devices } from "@playwright/test";
 const API_PORT = Number(process.env.PG_API_PORT ?? 8000);
 const WEB_PORT = Number(process.env.PG_WEB_PORT ?? 3100);
 const LLM_PORT = Number(process.env.PG_FAKE_LLM_PORT ?? 8002);
-// The sandbox ships Chromium outside Playwright's cache; PG_CHROMIUM overrides it for other machines.
-const executablePath = process.env.PG_CHROMIUM ?? (process.env.CI ? undefined : "/opt/pw-browsers/chromium-1194/chrome-linux/chrome");
+// PG_CHROMIUM names a Chromium binary explicitly. Otherwise the sandbox's pre-installed one is used when it exists;
+// everywhere else Playwright's own browser (`npx playwright install chromium`) is used.
+const SANDBOX_CHROMIUM = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
+const executablePath = process.env.PG_CHROMIUM ?? (existsSync(SANDBOX_CHROMIUM) ? SANDBOX_CHROMIUM : undefined);
+// The API runs from the virtual environment `uv sync` creates; PG_PYTHON points at another interpreter.
+const python = process.env.PG_PYTHON ?? "../.venv/bin/python";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -34,7 +39,7 @@ export default defineConfig({
       reuseExistingServer: Boolean(process.env.PG_REUSE_SERVER),
     },
     {
-      command: `../.venv/bin/python -m uvicorn promptgraphify.api.app:app --host 127.0.0.1 --port ${API_PORT}`,
+      command: `${python} -m uvicorn promptgraphify.api.app:app --host 127.0.0.1 --port ${API_PORT}`,
       url: `http://127.0.0.1:${API_PORT}/api/health`,
       env: {
         PROMPTGRAPHIFY_LLM_PROVIDER: "openai-compatible",
