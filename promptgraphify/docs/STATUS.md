@@ -8,42 +8,42 @@ Resume from this file if context is lost. Last updated: end of M1.
 |-------|-------|
 | M0 Inspect | **done** |
 | M1 IR and fixtures | **done** |
-| M2 Vertical slice | **done** (text / Markdown / XML) — see evidence below |
-| M3 Full parsers and analysis | next: YAML/JSON/messages front-ends, DAG, analyzer rules, query engine, DAG tab, diagnostics sidebar |
-| M4 Interfaces | not started: CLI, remaining API endpoints, SQLite, exports, diff |
+| M2 Vertical slice | **done** |
+| M3 Full parsers and analysis | **done** — YAML/JSON, Execution DAG, 21 analyzer rules, 8 queries, DAG tab, diagnostics, queries panel, multi-file |
+| M4 Interfaces | in progress: SQLite store + 5 of 6 API endpoints done; CLI, `/api/diff`, diff, exports (graph.html, GRAPH_REPORT.md, Mermaid, GraphML, SVG/PNG) still open |
 | M5 Semantic layer and hardening | not started |
 | M6 Handover | not started |
 
-## Evidence for M2 (commands run in this session)
+## Evidence (commands run in this session)
 
-- `.venv/bin/python -m pytest -q` → 243 passed, 2 skipped (YAML/JSON fixtures wait for M3).
-- `cd web && npx vitest run` → 13 passed. `npx tsc --noEmit` → clean.
-- `cd web && npx playwright test` → 13 passed (12 desktop, 1 mobile Pixel 5): unique-token flow, two prompts
-  → two graphs, emoji offsets, edge rationale + evidence highlight, search/filter, editor-click selection,
-  keyboard list, markup not executed, stale banner, error recovery, theme/privacy badge, Ctrl+Enter, mobile.
-- The 31 text/MD/XML fixtures match their hand-written expectations (nodes and edges exact).
+- `.venv/bin/python -m pytest -q` → 414 passed (fixtures: nodes, edges, diagnostics, DAG all match; per-rule
+  positive+negative tests; property tests for spans/determinism; YAML/JSON hostile inputs; API; SQLite).
+- `cd web && npx vitest run` → 15 passed; `npx tsc --noEmit` clean.
+- `cd web && npx playwright test` → 21 desktop + 1 mobile passed (Playwright starts the backend and the
+  production build itself and refuses to reuse a stale server unless `PG_REUSE_SERVER=1`).
 
 ## What exists now
 
-- Core: scanner (`markup.py`), sentence splitter (`text.py`), classifier, placeholders, extraction,
-  relations, `analyze()`, `graphjson.py`; signal words in `signals/*.json`.
-- API: `POST /api/analyze`, `GET /api/health`, OpenAPI → `web/openapi.json` → `web/src/lib/api-types.ts`.
-- Web: Next.js workbench (CodeMirror editor, React Flow graph, node list, inspector, filters, theme).
+- Core: `markup` / `text` / `classify` / `placeholders` / `extract` / `relations`; YAML+JSON front-ends
+  (`yamlscan`, `jsonscan`, `structured`); `dag`; `analyzer`; `queries`; `storage`; `graphjson`; `validate` (Layer C incl. DAG).
+- API: `POST /api/analyze|validate`, `GET /api/graph/{id}`, `/node/{id}`, `/path`, `/query/{name}`, `/api/queries`, `/api/health`.
+- Web: Knowledge Graph + Execution DAG tabs, diagnostics, queries, node list, inspector, multi-file tabs.
 
-## Next action (M3)
+## Next action (M4)
 
-1. `yaml`/`json` front-ends (string values keep exact spans; escapes → `decoded_text`), un-skip fixtures 06/07.
-2. Execution DAG (`dag.py`), diagnostics (`analyzer.py`, each rule with a positive and a negative test),
-   `tests/test_fixtures_analysis.py` (diagnostics + DAG expectations), query engine (8 queries).
-3. UI: DAG tab, diagnostics sidebar, edge evidence polish.
+1. `diff.py` (stable-ID matching, six change kinds, "probably modified" by similarity) + `POST /api/diff`.
+2. CLI (`analyze`, `explain`, `path`, `validate`, `diff`) with documented exit codes.
+3. Exports: graph.html (offline, no CDN), GRAPH_REPORT.md, Mermaid, GraphML, SVG/PNG.
 
 ## Known limitations so far (honest list)
 
-- Classification is signal-word based; the fixtures were written by the same author as the rules, so the
-  86/86 sentence-classification match proves consistency, not accuracy. A separate evaluation set comes in M5.
-- Tone adjectives without a format/limit word ("Be kind to every user") are not classified: they stay
-  *uncovered* (reported, never guessed).
-- `OVERRIDES` from role precedence alone, `PRODUCES` for output files, and multi-tool JSON arrays are not implemented.
+- Classification is signal-word based; fixtures were written by the same author as the rules, so the
+  sentence-classification match proves consistency, not accuracy. An evaluation set comes in M5.
+  Verbs outside the word lists (`data/signals/*.json`) leave a sentence *uncovered* (reported, never guessed).
+- Tone adjectives without a format/limit word ("Be kind to every user") are not classified.
+- `OVERRIDES` from role precedence alone, `PRODUCES` for output files and tools given as a JSON array of
+  strings are not implemented. XML `<step>` ordering is not interpreted.
+- Mobile layout is verified by one Playwright test (Pixel 5 viewport) and one screenshot, not a full audit.
 
 ## Known blockers / NOT VERIFIED so far
 

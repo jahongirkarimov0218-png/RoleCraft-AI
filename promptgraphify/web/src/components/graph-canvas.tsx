@@ -33,11 +33,12 @@ import {
   matchesSearch,
   neighborhood,
   parallelIndex,
-  visibleIds,
   type Filters,
   type Positions,
+  type View,
+  type ViewEdge,
 } from "@/lib/graph-view";
-import type { GraphDocument, GraphEdge, GraphNode, Selection } from "@/lib/types";
+import type { GraphNode, Selection } from "@/lib/types";
 
 interface NodeData extends Record<string, unknown> {
   node: GraphNode;
@@ -78,7 +79,7 @@ const PromptNode = memo(function PromptNode({ data, selected }: NodeProps<PNode>
 });
 
 interface EdgeData extends Record<string, unknown> {
-  edge: GraphEdge;
+  edge: ViewEdge;
   dimmed: boolean;
   index: number;
   total: number;
@@ -92,7 +93,8 @@ function RelationEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, 
   const curvature = 0.25 + (idx - (total - 1) / 2) * 0.22;
   const [path, lx, ly] = getBezierPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, curvature });
   const status = data?.edge.status ?? "EXTRACTED";
-  const color = status === "AMBIGUOUS" ? "var(--warn)" : status === "INFERRED" ? "var(--muted)" : "var(--fg)";
+  const critical = data?.edge.critical === true;
+  const color = critical ? "var(--accent)" : status === "AMBIGUOUS" ? "var(--warn)" : status === "INFERRED" ? "var(--muted)" : "var(--fg)";
   return (
     <>
       <BaseEdge
@@ -102,14 +104,15 @@ function RelationEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, 
         interactionWidth={14}
         style={{
           stroke: color,
-          strokeWidth: selected ? 2.5 : 1.4,
-          strokeDasharray: STATUS_DASH[status],
+          strokeWidth: selected ? 2.5 : critical ? 2.4 : 1.4,
+          strokeDasharray: data?.edge.conditional ? "3 3" : STATUS_DASH[status],
           opacity: data?.dimmed ? 0.12 : selected ? 1 : 0.75,
         }}
       />
       {(data?.showLabel || selected) && !data?.dimmed && (
         <text x={lx} y={ly} textAnchor="middle" dominantBaseline="central" className="pointer-events-none select-none fill-muted text-[9px]">
           {data?.edge.relation.replace(/_/g, " ").toLowerCase()}
+          {data?.edge.conditional ? " (if)" : ""}
         </text>
       )}
     </>
@@ -120,20 +123,18 @@ const nodeTypes = { prompt: PromptNode };
 const edgeTypes = { relation: RelationEdge };
 
 interface Props {
-  doc: GraphDocument;
+  view: View;
   filters: Filters;
   selection: Selection;
   onSelect(sel: Selection): void;
   dark: boolean;
-  /** Which edges and nodes to draw; the Execution DAG tab passes its own view. */
-  mode?: "knowledge";
+  label: string;
 }
 
-function Canvas({ doc, filters, selection, onSelect, dark }: Props) {
+function Canvas({ view, filters, selection, onSelect, dark, label }: Props) {
   const rf = useReactFlow();
-  const visible = useMemo(() => visibleIds(doc, filters), [doc, filters]);
-  const visibleNodes = useMemo(() => doc.nodes.filter((n) => visible.nodes.has(n.id)), [doc, visible]);
-  const visibleEdges = useMemo(() => doc.edges.filter((e) => visible.edges.has(e.id)), [doc, visible]);
+  const visibleNodes = view.nodes;
+  const visibleEdges = view.edges;
 
   // Portrait containers (phones) get a top-to-bottom layout, landscape ones left-to-right.
   const portrait = useStore((s) => s.height > s.width * 1.1);
@@ -143,9 +144,9 @@ function Canvas({ doc, filters, selection, onSelect, dark }: Props) {
     [visibleNodes, visibleEdges, portrait],
   );
   const [moved, setMoved] = useState<Positions>(new Map());
-  useEffect(() => setMoved(new Map()), [doc.graph_id]);
+  useEffect(() => setMoved(new Map()), [view.key]);
 
-  const hood = useMemo(() => neighborhood(doc, selection), [doc, selection]);
+  const hood = useMemo(() => neighborhood(visibleEdges, selection), [visibleEdges, selection]);
   const hasSearch = filters.search.trim().length > 0;
   const par = useMemo(() => parallelIndex(visibleEdges), [visibleEdges]);
 
@@ -170,11 +171,11 @@ function Canvas({ doc, filters, selection, onSelect, dark }: Props) {
 
   const edges: REdge[] = useMemo(
     () =>
-      visibleEdges.map((e) => {
+      visibleEdges.map((e, i) => {
         const p = par.get(e.id) ?? { index: 0, total: 1 };
         const dimmed = selection !== null && !hood.edges.has(e.id);
         return {
-          id: e.id,
+          id: `${e.id}#${i}`,
           type: "relation",
           source: e.source,
           target: e.target,
@@ -200,7 +201,7 @@ function Canvas({ doc, filters, selection, onSelect, dark }: Props) {
   useEffect(() => {
     const t = setTimeout(() => rf.fitView({ padding: 0.15, duration: 200 }), 30);
     return () => clearTimeout(t);
-  }, [doc.graph_id, visibleNodes.length, portrait, rf]);
+  }, [view.key, visibleNodes.length, portrait, rf]);
 
   // Bring a selected node into view when it was chosen elsewhere (list, editor).
   useEffect(() => {
@@ -218,16 +219,16 @@ function Canvas({ doc, filters, selection, onSelect, dark }: Props) {
       edgeTypes={edgeTypes}
       onNodesChange={onNodesChange}
       onNodeClick={(_, n) => onSelect({ kind: "node", id: n.id })}
-      onEdgeClick={(_, e) => onSelect({ kind: "edge", id: e.id })}
+      onEdgeClick={(_, e) => onSelect({ kind: "edge", id: (e.data as EdgeData).edge.id })}
       onPaneClick={() => onSelect(null)}
       colorMode={dark ? "dark" : "light"}
       nodesConnectable={false}
       elementsSelectable
-      onlyRenderVisibleElements={doc.nodes.length > 60}
+      onlyRenderVisibleElements={visibleNodes.length > 60}
       minZoom={0.1}
       maxZoom={2}
       proOptions={{ hideAttribution: true }}
-      aria-label="Knowledge graph"
+      aria-label={label}
     >
       <Background gap={24} size={1} />
       <Controls showInteractive={false} position="bottom-left" />
@@ -249,7 +250,7 @@ function Canvas({ doc, filters, selection, onSelect, dark }: Props) {
 
 export function GraphCanvas(props: Props) {
   return (
-    <div className="h-full w-full" data-testid="graph-canvas">
+    <div className="h-full w-full" data-testid="graph-canvas" data-view={props.view.key.split(":")[0]}>
       <ReactFlowProvider>
         <Canvas {...props} />
       </ReactFlowProvider>

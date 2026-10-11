@@ -11,6 +11,9 @@ export type SourceCoverage = S["SourceCoverage"];
 export type DagView = S["DagView"];
 export type AnalyzeResponse = S["AnalyzeResponse"];
 export type ErrorResponse = S["ErrorResponse"];
+export type QueryResult = S["QueryResult"];
+export type QuerySpec = S["QuerySpec"];
+export type QueryRow = S["Row"];
 
 export type NodeType = GraphNode["type"];
 export type Relation = GraphEdge["relation"];
@@ -25,5 +28,7 @@ export const NODE_TYPES: NodeType[] = [
   "ExampleNode",
 ];
 export const EDGE_STATUSES: EdgeStatus[] = ["EXTRACTED", "INFERRED", "AMBIGUOUS"];
+
+export type Severity = Diagnostic["severity"];
 
 export type Selection = { kind: "node"; id: string } | { kind: "edge"; id: string } | null;

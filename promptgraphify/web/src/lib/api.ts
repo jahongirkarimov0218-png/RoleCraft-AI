@@ -1,4 +1,4 @@
-import type { AnalyzeResponse } from "./types";
+import type { AnalyzeResponse, QueryResult, QuerySpec } from "./types";
 
 export class ApiError extends Error {
   constructor(
@@ -39,4 +39,13 @@ export async function analyze(files: { path: string; text: string }[], signal?: 
 
 export async function health(signal?: AbortSignal): Promise<HealthInfo> {
   return parse(await fetch("/api/health", { signal }));
+}
+
+export async function listQueries(signal?: AbortSignal): Promise<QuerySpec[]> {
+  return parse(await fetch("/api/queries", { signal }));
+}
+
+export async function runQuery(graphId: string, name: string, params: Record<string, string>, signal?: AbortSignal): Promise<QueryResult> {
+  const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v !== ""));
+  return parse(await fetch(`/api/graph/${encodeURIComponent(graphId)}/query/${encodeURIComponent(name)}?${qs}`, { signal }));
 }

@@ -56,29 +56,81 @@ export function visibleIds(doc: GraphDocument, filters: Filters): { nodes: Set<s
   return { nodes, edges };
 }
 
+export interface ViewEdge {
+  id: string; // the knowledge-graph edge id (a DAG arrow carries the id of the edge it was projected from)
+  source: string;
+  target: string;
+  relation: string;
+  status: EdgeStatus;
+  conditional: boolean;
+  critical: boolean;
+}
+
+export interface View {
+  key: string;
+  nodes: GraphNode[];
+  edges: ViewEdge[];
+}
+
+function applyFilters(nodes: GraphNode[], edges: ViewEdge[], filters: Filters): { nodes: GraphNode[]; edges: ViewEdge[] } {
+  const keep = new Set(nodes.filter((n) => filters.types.has(n.type)).map((n) => n.id));
+  return {
+    nodes: nodes.filter((n) => keep.has(n.id)),
+    edges: edges.filter((e) => filters.statuses.has(e.status) && keep.has(e.source) && keep.has(e.target)),
+  };
+}
+
+export function knowledgeView(doc: GraphDocument, filters: Filters): View {
+  const all: ViewEdge[] = doc.edges.map((e) => ({
+    id: e.id, source: e.source, target: e.target, relation: e.relation, status: e.status,
+    conditional: e.relation === "CONDITIONALLY_EXECUTES", critical: false,
+  }));
+  const { nodes, edges } = applyFilters(doc.nodes, all, filters);
+  return { key: `kg:${doc.graph_id}`, nodes, edges };
+}
+
+/** The execution DAG as a view. `subgraph` shows the acyclic subgraph offered for a blocked DAG. */
+export function dagView(doc: GraphDocument, filters: Filters, subgraph = false): View {
+  const dag = doc.dag;
+  const byId = new Map(doc.nodes.map((n) => [n.id, n]));
+  const statusOf = new Map(doc.edges.map((e) => [e.id, e.status]));
+  const critical = new Set<string>();
+  for (let i = 0; i + 1 < dag.critical_path.length; i++) critical.add(`${dag.critical_path[i]}>${dag.critical_path[i + 1]}`);
+  const source = subgraph && dag.acyclic_subgraph ? dag.acyclic_subgraph : dag.edges;
+  const all: ViewEdge[] = source.map((e) => ({
+    id: e.graph_edge, source: e.source, target: e.target, relation: e.relation,
+    status: statusOf.get(e.graph_edge) ?? "EXTRACTED", conditional: e.conditional,
+    critical: critical.has(`${e.source}>${e.target}`),
+  }));
+  const nodes = dag.vertices.map((v) => byId.get(v)).filter((n): n is GraphNode => n !== undefined);
+  const { nodes: ns, edges } = applyFilters(nodes, all, filters);
+  return { key: `dag:${doc.graph_id}:${subgraph ? "sub" : "full"}`, nodes: ns, edges };
+}
+
 /** Selected element plus everything directly connected to it. */
-export function neighborhood(doc: GraphDocument, sel: { kind: "node" | "edge"; id: string } | null) {
+export function neighborhood(edges: { id: string; source: string; target: string }[], sel: { kind: "node" | "edge"; id: string } | null) {
   const nodes = new Set<string>();
-  const edges = new Set<string>();
-  if (!sel) return { nodes, edges };
+  const ids = new Set<string>();
+  if (!sel) return { nodes, edges: ids };
   if (sel.kind === "node") {
     nodes.add(sel.id);
-    for (const e of doc.edges) {
+    for (const e of edges) {
       if (e.source === sel.id || e.target === sel.id) {
-        edges.add(e.id);
+        ids.add(e.id);
         nodes.add(e.source);
         nodes.add(e.target);
       }
     }
   } else {
-    const e = doc.edges.find((x) => x.id === sel.id);
-    if (e) {
-      edges.add(e.id);
-      nodes.add(e.source);
-      nodes.add(e.target);
+    for (const e of edges) {
+      if (e.id === sel.id) {
+        ids.add(e.id);
+        nodes.add(e.source);
+        nodes.add(e.target);
+      }
     }
   }
-  return { nodes, edges };
+  return { nodes, edges: ids };
 }
 
 export type Positions = Map<string, { x: number; y: number }>;
@@ -112,7 +164,7 @@ export function computeLayout(
 }
 
 /** Index of parallel edges (same ordered pair) so they can be drawn with different curvature. */
-export function parallelIndex(edges: GraphEdge[]): Map<string, { index: number; total: number }> {
+export function parallelIndex(edges: { id: string; source: string; target: string }[]): Map<string, { index: number; total: number }> {
   const groups = new Map<string, string[]>();
   for (const e of edges) {
     const key = [e.source, e.target].sort().join("\u0000");

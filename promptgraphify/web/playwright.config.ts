@@ -27,14 +27,15 @@ export default defineConfig({
     {
       command: `../.venv/bin/python -m uvicorn promptgraphify.api.app:app --host 127.0.0.1 --port ${API_PORT}`,
       url: `http://127.0.0.1:${API_PORT}/api/health`,
-      reuseExistingServer: true,
+      // A stale server on the port would silently test old code: fail loudly unless asked to reuse it.
+      reuseExistingServer: Boolean(process.env.PG_REUSE_SERVER),
       timeout: 60_000,
     },
     {
       command: `npm run build && npx next start -p ${WEB_PORT}`,
       url: `http://127.0.0.1:${WEB_PORT}`,
       env: { PROMPTGRAPHIFY_API_URL: `http://127.0.0.1:${API_PORT}` },
-      reuseExistingServer: true,
+      reuseExistingServer: Boolean(process.env.PG_REUSE_SERVER),
       timeout: 240_000,
     },
   ],

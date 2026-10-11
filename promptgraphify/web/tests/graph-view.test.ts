@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeLayout, matchesSearch, neighborhood, nodeAtOffset, parallelIndex, visibleIds } from "@/lib/graph-view";
+import { computeLayout, dagView, knowledgeView, matchesSearch, neighborhood, nodeAtOffset, parallelIndex, visibleIds } from "@/lib/graph-view";
 import type { GraphDocument, GraphEdge, GraphNode } from "@/lib/types";
 import { EDGE_STATUSES, NODE_TYPES } from "@/lib/types";
 
@@ -38,12 +38,12 @@ describe("graph view helpers", () => {
   });
 
   it("neighborhood of a node is the node, its edges and the other endpoints", () => {
-    const h = neighborhood(D, { kind: "node", id: "a" });
+    const h = neighborhood(D.edges, { kind: "node", id: "a" });
     expect([...h.nodes].sort()).toEqual(["a", "b", "c"]);
     expect([...h.edges].sort()).toEqual(["e1", "e2", "e3"]);
-    expect(neighborhood(D, { kind: "node", id: "d" }).edges.size).toBe(0);
-    expect([...neighborhood(D, { kind: "edge", id: "e2" }).nodes].sort()).toEqual(["a", "c"]);
-    expect(neighborhood(D, null).nodes.size).toBe(0);
+    expect(neighborhood(D.edges, { kind: "node", id: "d" }).edges.size).toBe(0);
+    expect([...neighborhood(D.edges, { kind: "edge", id: "e2" }).nodes].sort()).toEqual(["a", "c"]);
+    expect(neighborhood(D.edges, null).nodes.size).toBe(0);
   });
 
   it("search matches label, text, id and type, case-insensitively", () => {
@@ -78,6 +78,36 @@ describe("graph view helpers", () => {
     for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
       expect(Math.abs(pts[i].x - pts[j].x) + Math.abs(pts[i].y - pts[j].y)).toBeGreaterThan(10);
     }
+  });
+
+  it("knowledge view applies the filters to nodes and edges", () => {
+    const v = knowledgeView(D, filters({ types: new Set(["TaskNode", "ContextNode"]), statuses: new Set(["EXTRACTED"]) }));
+    expect(v.nodes.map((n) => n.id)).toEqual(["a", "b"]);
+    expect(v.edges.map((e) => e.id)).toEqual(["e1"]);
+  });
+
+  it("dag view draws the DAG's arrows, marks the critical path and offers the acyclic subgraph", () => {
+    const dag = {
+      status: "blocked", vertices: ["a", "b", "c"], topological_order: [], critical_path: ["a", "b"], cycles: [], unresolved: [],
+      edges: [
+        { source: "a", target: "b", relation: "PRECEDES", graph_edge: "e1", conditional: false, condition: null, loop: false },
+        { source: "b", target: "c", relation: "CONDITIONALLY_EXECUTES", graph_edge: "e2", conditional: true, condition: "if x", loop: false },
+        { source: "c", target: "a", relation: "PRECEDES", graph_edge: "e3", conditional: false, condition: null, loop: false },
+      ],
+      acyclic_subgraph: [
+        { source: "a", target: "b", relation: "PRECEDES", graph_edge: "e1", conditional: false, condition: null, loop: false },
+        { source: "b", target: "c", relation: "CONDITIONALLY_EXECUTES", graph_edge: "e2", conditional: true, condition: "if x", loop: false },
+      ],
+      removed_for_acyclic: ["e3"], loops: [], metrics: [],
+    };
+    const d = { ...D, nodes: [node("a", "TaskNode", 0, 1), node("b", "TaskNode", 2, 3), node("c", "TaskNode", 4, 5)], edges: [edge("e1", "a", "b"), edge("e2", "b", "c"), edge("e3", "c", "a")], dag } as unknown as GraphDocument;
+    const full = dagView(d, filters());
+    expect(full.edges.map((e) => e.id)).toEqual(["e1", "e2", "e3"]);
+    expect(full.edges.find((e) => e.id === "e1")?.critical).toBe(true);
+    expect(full.edges.find((e) => e.id === "e2")?.conditional).toBe(true);
+    const sub = dagView(d, filters(), true);
+    expect(sub.edges.map((e) => e.id)).toEqual(["e1", "e2"]);
+    expect(sub.key).not.toBe(full.key);
   });
 
   it("lays out 300 nodes quickly", () => {
