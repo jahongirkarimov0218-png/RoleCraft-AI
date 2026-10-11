@@ -9,12 +9,15 @@
   "^you will act as\\b",
   "^take the role of\\b"
  ],
- "modal_opener": [
+ "task_openers": [
   "^(?:you|the (?:assistant|model|ai|agent|bot|chatbot))\\s+(?:must|should|shall|will|need to|needs to|have to|has to)\\b",
   "^your (?:task|job|goal|objective|mission|assignment) is to\\b",
   "^(?:i|we) (?:want|need|would like|expect|ask) you to\\b",
   "^it is (?:important|essential|necessary|crucial|vital|required) to\\b",
   "^you are (?:required|expected|asked|supposed|going) to\\b"
+ ],
+ "constraint_openers": [
+  "^(?:the |your |each |every |all )?(?:answer|response|reply|output|result|summary)s?\\s+(?:must|should|needs? to|has to|have to|shall)\\s+(?:be|contain|include|start|end|use|stay|remain)\\b"
  ],
  "hierarchy": [
   "\\btakes? precedence (?:over|above)\\b",

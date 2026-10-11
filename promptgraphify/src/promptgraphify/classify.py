@@ -3,11 +3,17 @@ data; nothing here knows about files, containers or fixtures."""
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 
 from .ontology import NodeType
-from .signals import SIGNALS, fold
-from .text import words
+from .signals import SIGNALS, Hit, fold
+from .text import WORD, words
+
+# An opener may follow prefix words ("Then you must ...", "Затем вам нужно ..."). Real prompts put at most two or three
+# there; the bound keeps a sentence made of thousands of prefix words linear.
+MAX_PREFIX_WORDS = 3
+_LEADING_SEPARATORS = re.compile(r"^[\s,]+")
 
 
 @dataclass
@@ -55,40 +61,77 @@ def _skippable(word: str) -> bool:
     )
 
 
-def _without_opener(clause: str) -> str:
-    """``clause`` without a leading modal opener ("You must", "Your task is to", "I want you to"): the verb that
-    follows it is the instruction. Only the lookup is shortened; the node keeps the whole sentence."""
-    hit = SIGNALS.find("modal_opener", clause.lstrip())
-    return clause.lstrip()[hit.end :] if hit and hit.start == 0 else clause
+def _is_question(text: str) -> bool:
+    return text.rstrip().endswith("?")
+
+
+def _opener(category: str, clause: str) -> tuple[str, Hit | None]:
+    """``clause`` after a leading opener of ``category`` ("You must", "Ваша задача —", "Vazifangiz —", "Ответ должен
+    быть"), also when up to MAX_PREFIX_WORDS prefix words precede it, and the opener. A question is never an
+    instruction, so it has no opener. Only the lookup is shortened; the node keeps the whole sentence."""
+    if _is_question(clause):
+        return clause, None
+    body = clause.lstrip()
+    starts = [0]
+    for m in WORD.finditer(fold(body)):
+        if len(starts) > MAX_PREFIX_WORDS or m.group(0).lower() not in SIGNALS.prefix_words:
+            break
+        starts.append(m.end())
+    for start in starts:
+        rest = _LEADING_SEPARATORS.sub("", body[start:], count=1)
+        if hit := SIGNALS.match_start(category, rest):
+            return rest[hit.end :], hit
+    return clause, None
+
+
+def _without_closer(text: str) -> tuple[str, bool]:
+    """``text`` without a trailing task closer of a verb-final language, and whether there was one. A 2nd-person closer
+    ("...ishingiz kerak", "...ishga majbursiz") names the model as the agent. An impersonal one ("...ish kerak",
+    "... talab qilinadi") counts only when the sentence does not first name someone else ("Menga ...",
+    "Ertaga menga ...", "Foydalanuvchi ..."): then it states their need or duty, not an instruction to the model."""
+    if _is_question(text):
+        return text, False
+    body = text.strip()
+    hit = SIGNALS.match_end("task_closers", body)
+    if hit is None and not SIGNALS.match_start("closer_blockers", body):
+        hit = SIGNALS.match_end("impersonal_closers", body)
+    return (body[: hit.start], True) if hit else (text, False)
+
+
+def _lookup(word: str, lang: str, nonfinite: bool) -> Verb | None:
+    """``word`` as a verb of ``lang``. Non-finite forms (infinitive, verbal noun) count only after an opener or a
+    closer: on their own ("Перевести текст.") they are not read as instructions, so earlier results do not change."""
+    v = SIGNALS.verbs[lang]
+    if word in v["strict"] or (nonfinite and word in v["strict_nonfinite"]):
+        return Verb(word, True, lang)
+    if word in v["task"] or (nonfinite and word in v["task_nonfinite"]):
+        return Verb(word, False, lang)
+    return None
 
 
 def find_verb(text: str) -> Verb | None:
-    for clause in _clause_candidates(text):
-        toks = words(_without_opener(clause))
+    candidates = _clause_candidates(text)
+    opened = False
+    for clause in candidates:
+        body, hit = _opener("task_openers", clause)
+        opened = opened or hit is not None
+        toks = words(body)
         i = 0
         while i < len(toks) and _skippable(toks[i][0]):
             i += 1
         if i < len(toks):
-            w = toks[i][0]
             for lang, pos in SIGNALS.verb_position.items():
-                if pos != "start":
-                    continue
-                if w in SIGNALS.verbs[lang]["strict"]:
-                    return Verb(w, True, lang)
-                if w in SIGNALS.verbs[lang]["task"]:
-                    return Verb(w, False, lang)
-    toks = [w for w, _, _ in words(text)]
+                if pos == "start" and (verb := _lookup(toks[i][0], lang, hit is not None)):
+                    return verb
+    body, closed = _without_closer(text)
+    # fold first: a typographic apostrophe (o’qish) must not split the word the way the raw text would
+    toks = [w for w, _, _ in words(fold(body))]
     for lang, pos in SIGNALS.verb_position.items():
         if pos != "end":
             continue
         for n in (2, 1):
-            tail = " ".join(toks[-n:]) if len(toks) >= n else None
-            if tail is None:
-                continue
-            if tail in SIGNALS.verbs[lang]["strict"]:
-                return Verb(tail, True, lang)
-            if tail in SIGNALS.verbs[lang]["task"]:
-                return Verb(tail, False, lang)
+            if len(toks) >= n and (verb := _lookup(" ".join(toks[-n:]), lang, opened or closed)):
+                return verb
     return None
 
 
@@ -142,6 +185,16 @@ def classify(text: str) -> Classification | None:
             kind,
             f"{kind.capitalize()} constraint (signal: {first.text!r})",
             [h.text for h in (*limit, *fmt)],
+            verb=verb.word if verb else None,
+        )
+    output = next((hit for c in _clause_candidates(stripped) if (hit := _opener("constraint_openers", c)[1])), None)
+    if output:
+        return Classification(
+            "ConstraintNode",
+            0.8,
+            "output_obligation",
+            f"Obligation on the output (signal: {output.text[:40]!r})",
+            [output.text],
             verb=verb.word if verb else None,
         )
     if verb:

@@ -16,8 +16,8 @@ Resume from this file if context is lost. Last updated: end of M6.
 
 ## Evidence (commands run in this session, end of M6; `scripts/ci-local.sh --skip-docker` in the working tree and again in a fresh clone)
 
-- `uv run pytest -q` → **773 passed**, 0 failed, 0 skipped, 0 warnings (Python 3.13.16, 4 CPUs). (745 at end of M5; +2 rules-doc
-  sync tests, +26 modal-opener tests. The fresh-clone run, made one commit earlier, passed 747.)
+- `uv run pytest -q` → **934 passed**, 0 failed, 0 skipped (Python 3.13.16 and 3.12.3, 4 CPUs). (745 at end of M5; +2 rules-doc
+  sync tests, +26 English modal-opener tests (D-025), +161 multilingual tests (D-026). The fresh-clone run passed 747.)
 - `ruff check src tests` and `ruff format --check src tests` clean; `cd web && npx tsc --noEmit` clean; `npx vitest run` → 15 passed.
 - `cd web && npx playwright test` → **63 passed** (desktop and one mobile project): core, analysis, exports, Mermaid (official
   parser), canvas (neighbour dimming, node drag), LLM layer (fake provider on loopback), accessibility (axe, both themes), responsive (6 sizes x 2 themes), performance.
@@ -94,9 +94,13 @@ Measured on the one-time holdout run (`eval/results/holdout.md`) and not fixed a
 - **Morphology**: Russian tool mentions need the nominative ("инструмент X"; "с помощью инструмента X" is missed);
   Uzbek negative imperatives are recognised for a list of stems, not for every verb ("topma" is missed); handoff
   targets with Uzbek suffixes ("To'lov agentiga") are not resolved.
-- **Modal openers are English only** (D-025): "Ты должен ..." and "Siz ... kerak" stay uncovered because the Russian/Uzbek
-  verb lists hold imperatives, not infinitives or verbal nouns. Sentences without a task verb after the opener are
-  uncovered by design ("You must be kind.").
+- **Modal openers** (D-025, D-026): supported in English, Russian and Uzbek for the listed shapes; questions, discourse
+  markers, third parties' duties and the speaker's own need give no node. Not supported: "Ты будешь + infinitive",
+  "Прошу тебя ...", connectives other than prefix words ("Далее", "Кроме того"), words inside an opener ("Ваша задача
+  как редактора —", "Вы должны строго ..."), Uzbek 3rd person "-ishi kerak" as a task, "-imiz kerak", "-dan iborat"
+  after "Vazifangiz", copula "bo'lishingiz kerak", passive verbal nouns. Known misreadings: epistemic "Вы должны
+  получить письмо ..." (task), an official "Ответ должен быть дан заявителю" (constraint), legal facts with
+  "taqiqlangan" (prohibition, as "is prohibited" in English); "Siz ... qilasiz" is still read as an identity.
 - **A line-initial tag inside a sentence** ("<document> teglari orasidagi matnni ..." in Uzbek word order) is read as a
   container opener, which splits the sentence.
 - **`CONFLICTS_WITH`** needs near-identical wording: "Always answer in formal English" vs "Never use formal language" is not

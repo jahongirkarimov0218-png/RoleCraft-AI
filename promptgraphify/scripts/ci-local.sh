@@ -12,7 +12,7 @@ step "backend: ruff check"; uv run ruff check src tests
 step "backend: ruff format --check"; uv run ruff format --check src tests
 step "backend: pytest"; uv run pytest -q
 step "requirements.txt matches uv.lock"
-uv export --no-dev --no-emit-project --frozen --format requirements-txt -o /tmp/pg-requirements.txt
+uv export --quiet --no-dev --no-emit-project --frozen --format requirements-txt -o /tmp/pg-requirements.txt
 diff <(grep -v '^#' requirements.txt) <(grep -v '^#' /tmp/pg-requirements.txt) && echo "in sync"
 
 step "web: npm ci"; (cd web && npm ci)

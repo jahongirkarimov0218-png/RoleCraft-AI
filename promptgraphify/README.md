@@ -205,7 +205,7 @@ src/promptgraphify/   analyzer library (markup, classify, relations, dag, analyz
   api/                FastAPI app, schemas, OpenAPI builder
   cli.py              the command line
   signals/            signal words per language (en, ru, uz) as data
-tests/                pytest suite and tests/fixtures/ (15 annotated prompts)
+tests/                pytest suite and tests/fixtures/ (33 annotated prompts)
 web/                  Next.js + React Flow UI, unit tests, Playwright end-to-end tests (web/e2e)
 eval/                 hand-labelled dataset, harness results
 docs/                 ANALYSIS_SPEC, RULES, DECISIONS, STATUS, PERFORMANCE, REFERENCE_NOTES

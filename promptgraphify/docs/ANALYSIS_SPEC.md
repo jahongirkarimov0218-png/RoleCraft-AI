@@ -68,11 +68,21 @@ Applied top to bottom; the first match wins; `confidence` is the rule's document
       `brief`, language names, `confidential`) → **ConstraintNode**
    e. any other imperative / obligation with a task verb (`answer`, `reply`, `write`, `use`, `follow`,
       `provide`, `javob ber`, `ответь`, …) → **TaskNode**
-      A *modal opener* before the verb is skipped for the lookup only (English): `You must`, `The assistant should`,
-      `You will`, `Your task is to`, `I want you to`, `It is important to`, `You are required to`. The node still spans
-      the whole sentence. Without a task verb after the opener ("You must be kind.") or with another subject
-      ("The user must provide a name.") there is no node and the sentence stays uncovered. Russian and Uzbek have no
-      opener list: their verb lists hold imperatives, not infinitives (limitation).
+      A *task opener* before the verb (`task_openers`, also after prefix words such as "Then", "Затем") is skipped for
+      the lookup only: `You must`, `The assistant should`, `Your task is to`, `I want you to`; `Ваша задача —`,
+      `Вы должны`, `Вам нужно`, `Требуется`, `Необходимо`, `Следует`, `Обязательно`; `Vazifangiz —`,
+      `Sizning vazifangiz`. Uzbek is verb-final, so a *task closer* (`task_closers`) is removed from the end:
+      `...ishingiz kerak`, `... shart`, `... lozim`, `... zarur`, `... talab qilinadi`, `...ishga majbursiz`,
+      `...ishingizni so'raymiz`; it is ignored when the sentence opens with someone else (`closer_blockers`: "Menga",
+      "Foydalanuvchi", ...). After an opener or a closer the verb is non-finite (`strict_nonfinite` / `task_nonfinite`:
+      Russian infinitives, Uzbek verbal nouns in -ish/-sh); those forms count only there, so "Перевести текст." alone
+      stays uncovered. The node always spans the whole sentence. Without a task verb after the opener ("You must be
+      kind.", "Требуется помощь.", "Menga kitob kerak.") or with another subject ("The user must provide a name.",
+      "Пользователь должен ...", "Foydalanuvchi ... tekshirishi kerak.") there is no node.
+   e2. an obligation whose subject is the output (`constraint_openers`: "The answer must be ...", "Ответ должен
+      содержать ...", "В ответе должны быть ...", "Javob ... bo'lishi kerak", "Natija ... olsin") → **ConstraintNode**
+      (`output_obligation`), checked after (a)–(d) and before (e) with a plain verb. Negated modals are prohibitions
+      (b): "Вы не должны ...", "Важно не ...", "...masligingiz kerak", "... man etiladi".
    f. none of the above → not a node; the sentence is **uncovered** and reported as such.
    (Strict verbs describe *what to do*; response verbs describe *how to answer*, so
    "Reply in a polite tone." is a constraint but "Answer the question using the knowledge base." is a

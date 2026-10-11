@@ -47,6 +47,9 @@ class SignalSet:
             lang: {
                 "strict": {fold(v.lower()) for v in data.get("strict_verbs", [])},
                 "task": {fold(v.lower()) for v in data.get("task_verbs", [])},
+                # non-finite forms (Russian infinitive, Uzbek verbal noun): only looked up after a task opener/closer
+                "strict_nonfinite": {fold(v.lower()) for v in data.get("strict_nonfinite", [])},
+                "task_nonfinite": {fold(v.lower()) for v in data.get("task_nonfinite", [])},
             }
             for lang, data in per_lang.items()
         }
@@ -91,6 +94,27 @@ class SignalSet:
     def has(self, category: str, text: str) -> bool:
         return self.find(category, text) is not None
 
+    def match_start(self, category: str, text: str) -> Hit | None:
+        """Longest match of ``category`` that starts at position 0 (openers). ``find`` would keep the first registered
+        pattern when several match at 0; an opener must be removed whole, so the longest one wins."""
+        folded = fold(text)
+        best: Hit | None = None
+        for lang, pat in self._patterns.get(category, ()):
+            m = pat.match(folded)
+            if m and (best is None or m.end() > best.end):
+                best = Hit(category, lang, text[m.start() : m.end()], m.start(), m.end(), m.groups())
+        return best
+
+    def match_end(self, category: str, text: str) -> Hit | None:
+        """Longest match of ``category`` that ends at the end of ``text`` (closers of verb-final languages)."""
+        folded = fold(text)
+        best: Hit | None = None
+        for lang, pat in self._patterns.get(category, ()):
+            m = pat.search(folded)
+            if m and m.end() == len(folded) and (best is None or m.start() < best.start):
+                best = Hit(category, lang, text[m.start() : m.end()], m.start(), m.end(), m.groups())
+        return best
+
     # ------------------------------------------------------------------ common (structure) names
     def match_common(self, key: str, text: str) -> re.Match | None:
         folded = fold(text.strip())
@@ -104,7 +128,8 @@ class SignalSet:
 _REGEX_CATEGORIES = {
     "identity", "hierarchy", "prohibition", "limit", "format", "output_spec", "sequence_words", "loop", "loop_back",
     "stop", "step_ref", "produce_before", "produce_after", "handoff", "call_verbs", "tool_mention", "vague",
-    "injection", "success", "context_missing", "obligation", "modal_opener",
+    "injection", "success", "context_missing", "obligation",
+    "task_openers", "task_closers", "impersonal_closers", "closer_blockers", "constraint_openers",
 }  # fmt: skip
 
 

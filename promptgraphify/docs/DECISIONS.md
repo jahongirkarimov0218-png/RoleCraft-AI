@@ -216,3 +216,77 @@ current analyzer, and the holdout was not re-run.
 Not done: Russian and Uzbek openers ("Ты должен ...", "Siz ... kerak"): their verb lists hold imperatives, not
 infinitives or verbal nouns. Known limitation.
 Status: accepted.
+
+## D-026 · v1.1: Russian and Uzbek modal openers and closers; obligations on the output
+Request (v1.1 first step): support "Ваша задача ...", "Вы должны ...", "Требуется ...", "Следует ...", "Обязательно ...",
+"Vazifangiz ...", "Siz ... qilishingiz kerak", "talab qilinadi", "zarur", "lozim", with `task_openers` and
+`constraint_openers` sections, producing a TaskNode or ConstraintNode only in a clear instruction context.
+What was built:
+1. Categories, the same in all three languages: `task_openers` (the English D-025 list, renamed), `task_closers`
+   (Uzbek is verb-final), `closer_blockers`, `constraint_openers`, and non-finite verb lists `strict_nonfinite` /
+   `task_nonfinite`. The opener does not decide the type: the rest of the sentence does (task verb → TaskNode;
+   prohibition / limit / format → ConstraintNode), exactly as for imperatives. `constraint_openers` is a separate
+   category for obligations whose subject is the output (`output_obligation`). Folding both into one list would
+   strip "Ответ должен включать ..." to the task infinitive and make it a task.
+2. Non-finite forms are looked up only after an opener or before a closer. Russian lists hold imperatives and Uzbek
+   lists stems/polite imperatives, so the infinitives (112 strict + 48 task) and verbal nouns (89 + 29) were derived
+   per entry. Russian: two independent annotators (agents) gave 244/246 identical answers; the 2 homographs
+   (перешли, раздели) were adjudicated and kept. 5 aspect partners were added (находить, получать, возвращать,
+   давать, включать). Uzbek: an annotator was compared with the regular rule (consonant + ish, vowel + sh); 181/183
+   agreed; "ro'yxatlang" fixed (the rule did not strip -ng), "javoblash" dropped (non-standard; "javob berish" covers
+   it). `быть`, `знать`, `понимать`, `помнить`, `работать`, `bo'lish` are excluded on purpose and tested.
+3. `SignalSet.match_start` / `match_end` pick the longest opener/closer: `find` keeps the first registered pattern
+   when several match at position 0, and an opener must be removed whole.
+4. New prohibitions: ru negated modals ("не должен"), "должны/нужно/важно/следует не ...", "избегайте/избегать";
+   uz "-masligi(ngiz) / -maslik + kerak/shart/lozim/zarur/darkor" (the existing "oshmasligi kerak" limit is excluded
+   so its rule does not change), "man etil...", "taqiqlan...". The Uzbek identity pattern ("Siz ... -siz") now
+   excludes "majbursiz" ("Siz ... tekshirishga majbursiz" was a SystemNode).
+5. English got `constraint_openers` for parity ("The answer must be ...", subjects answer/response/reply/output/
+   result/summary; "text" is excluded because "The text must be translated" is about the input), and openers after
+   prefix words ("Then you must ...").
+Deliberately not supported (each would add false positives or needs morphology beyond word lists): "Ты будешь +
+infinitive", "Прошу тебя ...", object-first "Ответ нужно оформить ...", "текст/matn/код" as output subject, Uzbek
+3rd person "-ishi kerak" as a task (third parties' duties), "-imiz kerak", "-dan iborat"/"-dir" after "Vazifangiz",
+copula "bo'lishingiz kerak", passive verbal nouns ("tekshirilishi shart"), the Uzbek present-future
+"Siz ... qilasiz" (still read as an identity; pre-existing). "Не обязательно ..." stays a prohibition by "^не".
+Adversarial review (four independent reviewers: Russian and Uzbek false-positive hunters, a ReDoS/performance prober,
+a code reviewer; every finding reproduced with a command against this tree and HEAD) found 34 issues in the first
+version, all fixed before anything was pushed:
+- two quadratic paths: a run of prefix words before an opener (120 KB: 86.8 s vs 0.8 s on HEAD) and Uzbek tails
+  `\s*[.!;]*\s*$` before a non-final word (100 KB: 33.6 s vs 0.3 s). Fixed by trying at most MAX_PREFIX_WORDS = 3
+  prefix words and by possessive tails `[\s.!;]*+$`; the shapes now take 0.27-0.86 s (HEAD 0.25-0.79 s) and are
+  pinned by `test_pathological_shapes_stay_fast`;
+- regressions of correct v1.0 results: "Объясни, почему он не должен ..." (a task) and limits ("Ответ не должен
+  превышать 100 слов", "... ortiq bo'lmasligi kerak") had become prohibitions. Russian negated modals are now
+  anchored to the model, the output or no subject, and must negate an infinitive; quantity limits keep `limit`;
+- questions ("Вам нужно перевести этот текст?") are never instructions: no opener, closer or output obligation applies;
+- discourse markers with an adverb or without the comma ("Следует также отметить, что ...", "Необходимо отметить
+  следующее:"); the optional adverb is repeated inside the negative lookahead so backtracking cannot skip it;
+- third parties: "Агент/Помощник/Ассистент должен ..." (human job titles; only unambiguous model nouns remain),
+  "Пользователь не должен ...", "Перевод/Резюме должен ..." (money transfer, CV: these nouns now need a possessive or
+  "итоговый"); Uzbek "Ertaga menga ...", "Ukamga ...", "Talabalar ... -masligi kerak". Uzbek closers are now two
+  categories: 2nd person (`task_closers`, the model is the agent whoever else is named) and impersonal
+  (`impersonal_closers`, ignored when `closer_blockers` finds someone else named first, after time adverbs);
+- Uzbek negated permissions and past facts ("taqiqlanmagan", "man etilmaydi", "... edi") are no longer
+  prohibitions; output obligations need an output-shaped predicate (bo'lishi, o'z ichiga olishi, mos kelishi,
+  yozilishi, ...), so "Javob ertaga kelishi kerak" and wish formulas are not constraints;
+- typographic apostrophes (o’qish) split Uzbek words: the verb lookup now tokenises the folded text; the closer
+  lookbehind accepts an apostrophe ("yig'ish");
+- English: an -ly adverb no longer licenses an opener ("Hopefully you will find ..."); openers and output obligations
+  are found after prefix words, hard wraps and condition clauses.
+Deliberate change recorded by a test: "Answer must be polite." / "Output must contain the total." were TaskNodes
+(the first word read as an imperative) and are now `output_obligation` constraints.
+Known limitations left (each would need meaning, not word lists): epistemic "Вы должны получить письмо ..." is a
+task; "Ответ должен быть дан заявителю" (an official reply) and wish formulas with "bo'lsin" are output
+constraints; "ИИ должен помогать людям" (an opinion) and "Задача: сократить расходы" (a business goal) are tasks;
+legal facts ("... qonun bilan taqiqlangan") are prohibitions, as "is prohibited" already is in English;
+connectives other than prefix words ("Далее", "После этого", "Кроме того") and words inside an opener
+("Ваша задача как редактора —", "Вы должны строго ...") hide the opener.
+Verification: `tests/test_signals_multilingual.py` (161 tests). Eleven mechanisms were each disabled in turn
+(non-finite lookup, gating of non-finite forms, the question rule, closer blockers, blockers wrongly applied to the
+2nd person, constraint openers, impersonal closers, folding before tokenising, the identity exception, the prefix-word
+bound, possessive tails) and every one made at least one test fail. Full suite 934 passed. The analysis of all 48
+evaluation records and all 33 fixtures (node type/span/method, edges, diagnostics, uncovered spans) is identical
+before and after, so the recorded eval numbers still describe the analyzer. Agent-written sentences: Russian 34/38
+positives and 29/29 negatives, Uzbek 26/32 and 23/23; every remaining miss is an unsupported shape listed above.
+Status: accepted.

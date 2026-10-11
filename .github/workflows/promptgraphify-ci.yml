@@ -35,7 +35,7 @@ jobs:
       - run: uv run pytest -q
       - name: requirements.txt matches uv.lock
         run: |
-          uv export --no-dev --no-emit-project --frozen --format requirements-txt -o "$RUNNER_TEMP/requirements.txt"
+          uv export --quiet --no-dev --no-emit-project --frozen --format requirements-txt -o "$RUNNER_TEMP/requirements.txt"
           diff <(grep -v '^#' requirements.txt) <(grep -v '^#' "$RUNNER_TEMP/requirements.txt")
   web:
     runs-on: ubuntu-latest
