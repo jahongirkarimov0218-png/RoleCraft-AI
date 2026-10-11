@@ -88,7 +88,10 @@ def test_execution_bottleneck(doc):
 def test_execution_bottleneck_when_one_exists():
     d = analyze(
         {
-            "p.md": "1. Extract {{a}}.\n2. Extract {{b}}.\n3. Merge step 1 and step 2.\n4. Summarize step 3.\n5. Send step 3.\n"
+            "p.md": (
+                "1. Extract {{a}}.\n2. Extract {{b}}.\n3. Merge step 1 and step 2.\n"
+                "4. Summarize step 3.\n5. Send step 3.\n"
+            )
         }
     )
     r = run_query(d, "execution_bottleneck")

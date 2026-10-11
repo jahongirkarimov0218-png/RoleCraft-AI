@@ -64,6 +64,7 @@ class ErrorBody(_Strict):
         "input_too_large",
         "no_input",
         "duplicate_path",
+        "invalid_text",
         "not_found",
         "unsupported_schema",
         "timeout",
@@ -125,3 +126,21 @@ class ValidateResponse(_Strict):
     violations: list[ViolationOut]
     diagnostics: list[Diagnostic]
     counts: SeverityCounts
+
+
+class DiffSide(_Strict):
+    """One side of a comparison: a stored graph (``graph_id``) or files to analyse (exactly one)."""
+
+    graph_id: str | None = Field(default=None, pattern=r"^[0-9a-f]{16}$")
+    files: list[FileInput] | None = Field(default=None, min_length=1, max_length=200)
+
+    @model_validator(mode="after")
+    def _one_of(self) -> DiffSide:
+        if (self.graph_id is None) == (self.files is None):
+            raise ValueError("give exactly one of 'graph_id' or 'files'")
+        return self
+
+
+class DiffRequest(_Strict):
+    old: DiffSide
+    new: DiffSide

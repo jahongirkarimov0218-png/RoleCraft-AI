@@ -31,7 +31,7 @@ from .ir import (
 )
 from .ontology import RELATIONS
 from .relations import DraftEdge, Linked, link
-from .security import sanitize_label
+from .security import has_lone_surrogate, sanitize_label
 from .spans import Span
 from .validate import assert_valid
 
@@ -189,6 +189,9 @@ def analyze(
         raise AnalysisError("input_too_large", f"input exceeds {max_input_chars} characters")
     if len({p for p, _ in pairs}) != len(pairs):
         raise AnalysisError("duplicate_path", "two inputs share a path")
+    for path, text in pairs:
+        if has_lone_surrogate(path) or has_lone_surrogate(text):
+            raise AnalysisError("invalid_text", f"{path!r} contains a lone UTF-16 surrogate; it is not valid text")
 
     sources: list[SourceData] = [extract_source(p, t) for p, t in pairs]
     texts = {p: t for p, t in pairs}

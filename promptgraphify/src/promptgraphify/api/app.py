@@ -7,16 +7,18 @@ import os
 import re
 import threading
 from dataclasses import dataclass
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import FastAPI, Path, Query, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from .. import __version__
 from ..analyze import AnalysisError, analyze
+from ..diff import DiffResult, diff_documents
+from ..exporters import FORMATS, render
 from ..graphjson import UnsupportedGraph
 from ..ir import SCHEMA_VERSION, AnalysisConfig, GraphDocument
 from ..queries import QUERY_NAMES, QUERY_SPECS, QueryResult, QuerySpec, run_query
@@ -25,6 +27,7 @@ from ..validate import GraphInvalid, validate_document
 from .schemas import (
     AnalyzeRequest,
     AnalyzeResponse,
+    DiffRequest,
     ErrorBody,
     ErrorDetail,
     ErrorResponse,
@@ -41,6 +44,7 @@ STATUS_BY_CODE = {
     "input_too_large": 413,
     "no_input": 422,
     "duplicate_path": 422,
+    "invalid_text": 422,
     "not_found": 404,
     "unsupported_schema": 422,
     "timeout": 504,
@@ -309,6 +313,54 @@ def create_app(settings: Settings | None = None, store: GraphStore | None = None
         if isinstance(doc, JSONResponse):
             return doc
         return run_query(doc, name, {k: v for k, v in request.query_params.items() if len(v) <= 400})
+
+    @app.post(
+        "/api/diff",
+        response_model=DiffResult,
+        responses=ERROR_RESPONSES,
+        tags=["analysis"],  # type: ignore[arg-type]
+        summary="Compare two versions of a prompt (stored graphs or files to analyse)",
+    )
+    async def post_diff(req: DiffRequest) -> DiffResult | JSONResponse:
+        docs: list[GraphDocument] = []
+        for side in (req.old, req.new):
+            if side.graph_id is not None:
+                found = load(side.graph_id)
+                if isinstance(found, JSONResponse):
+                    return found
+                docs.append(found)
+            else:
+                try:
+                    fresh = await run_analysis(side.files or [])
+                except Exception as exc:  # noqa: BLE001 - mapped to the error envelope by failure()
+                    return failure(exc)
+                get_store().put(fresh)
+                docs.append(fresh)
+        return await asyncio.to_thread(diff_documents, docs[0], docs[1])
+
+    @app.get(
+        "/api/graph/{graph_id}/export/{fmt}",
+        responses={**ERROR_RESPONSES, 200: {"description": "The export as a file download"}},
+        tags=["graph"],  # type: ignore[arg-type]
+        summary="Download a stored graph as json, html, report, mermaid, graphml or svg",
+    )
+    async def get_export(graph_id: str, fmt: str, view: Literal["graph", "dag"] = "graph") -> Response:
+        if fmt not in FORMATS:
+            return error_response("not_found", f"unknown export format {fmt!r}; known: {', '.join(FORMATS)}")
+        doc = load(graph_id)
+        if isinstance(doc, JSONResponse):
+            return doc
+        spec, text = await asyncio.to_thread(render, fmt, doc, view)
+        name = spec.filename if not (spec.uses_view and view == "dag") else spec.filename.replace("graph", "graph-dag")
+        return Response(
+            text.encode("utf-8"),
+            media_type=spec.media_type,
+            headers={
+                "content-disposition": f'attachment; filename="{name}"',
+                "x-content-type-options": "nosniff",
+                "content-security-policy": "default-src 'none'; sandbox",
+            },
+        )
 
     return app
 

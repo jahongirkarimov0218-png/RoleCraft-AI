@@ -21,6 +21,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/diff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Compare two versions of a prompt (stored graphs or files to analyse) */
+        post: operations["post_diff_api_diff_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/graph/{graph_id}": {
         parameters: {
             query?: never;
@@ -30,6 +47,23 @@ export interface paths {
         };
         /** A stored graph */
         get: operations["get_graph_api_graph__graph_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/graph/{graph_id}/export/{fmt}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download a stored graph as json, html, report, mermaid, graphml or svg */
+        get: operations["get_export_api_graph__graph_id__export__fmt__get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -166,6 +200,20 @@ export interface components {
             /** Graph Id */
             graph_id: string;
         };
+        /** ConstraintChange */
+        ConstraintChange: {
+            constraint: components["schemas"]["NodeRef"];
+            /** Detail */
+            detail: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "added" | "removed" | "probably_modified" | "moved" | "scope_changed";
+            previous: components["schemas"]["NodeRef"] | null;
+            /** Similarity */
+            similarity: number | null;
+        };
         /** CycleReport */
         CycleReport: {
             /**
@@ -260,6 +308,73 @@ export interface components {
             /** Suggested Fix */
             suggested_fix: string;
         };
+        /** DiagnosticChange */
+        DiagnosticChange: {
+            diagnostic: components["schemas"]["Diagnostic"];
+            /** Labels */
+            labels: string[];
+        };
+        /** DiffRequest */
+        DiffRequest: {
+            new: components["schemas"]["DiffSide"];
+            old: components["schemas"]["DiffSide"];
+        };
+        /** DiffResult */
+        DiffResult: {
+            /** Constraints */
+            constraints: components["schemas"]["ConstraintChange"][];
+            /** Dependencies */
+            dependencies: components["schemas"]["EdgeChange"][];
+            /** Diagnostics New */
+            diagnostics_new: components["schemas"]["DiagnosticChange"][];
+            /** Diagnostics Resolved */
+            diagnostics_resolved: components["schemas"]["DiagnosticChange"][];
+            /** Identical */
+            identical: boolean;
+            /** New Graph Id */
+            new_graph_id: string;
+            /** Nodes Added */
+            nodes_added: components["schemas"]["NodeRef"][];
+            /** Nodes Removed */
+            nodes_removed: components["schemas"]["NodeRef"][];
+            /** Old Graph Id */
+            old_graph_id: string;
+            /** Probably Modified */
+            probably_modified: components["schemas"]["NodePair"][];
+            sequence: components["schemas"]["SequenceChange"];
+            summary: components["schemas"]["DiffSummary"];
+        };
+        /**
+         * DiffSide
+         * @description One side of a comparison: a stored graph (``graph_id``) or files to analyse (exactly one).
+         */
+        DiffSide: {
+            /** Files */
+            files?: components["schemas"]["FileInput"][] | null;
+            /** Graph Id */
+            graph_id?: string | null;
+        };
+        /** DiffSummary */
+        DiffSummary: {
+            /** Constraints Changed */
+            constraints_changed: number;
+            /** Dependencies Added */
+            dependencies_added: number;
+            /** Dependencies Removed */
+            dependencies_removed: number;
+            /** Diagnostics New */
+            diagnostics_new: number;
+            /** Diagnostics Resolved */
+            diagnostics_resolved: number;
+            /** Nodes Added */
+            nodes_added: number;
+            /** Nodes Removed */
+            nodes_removed: number;
+            /** Probably Modified */
+            probably_modified: number;
+            /** Sequence Changed */
+            sequence_changed: boolean;
+        };
         /** Edge */
         Edge: {
             /** Confidence */
@@ -295,6 +410,21 @@ export interface components {
             /** Target */
             target: string;
         };
+        /** EdgeChange */
+        EdgeChange: {
+            edge: components["schemas"]["EdgeRef"];
+            /** Evidence */
+            evidence: components["schemas"]["Evidence"][];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "added" | "removed";
+            /** Source Label */
+            source_label: string;
+            /** Target Label */
+            target_label: string;
+        };
         /** EdgeRef */
         EdgeRef: {
             /** Id */
@@ -316,7 +446,7 @@ export interface components {
              * Code
              * @enum {string}
              */
-            code: "invalid_request" | "input_too_large" | "no_input" | "duplicate_path" | "not_found" | "unsupported_schema" | "timeout" | "internal_error" | "internal_invariant_failed" | "llm_unavailable";
+            code: "invalid_request" | "input_too_large" | "no_input" | "duplicate_path" | "invalid_text" | "not_found" | "unsupported_schema" | "timeout" | "internal_error" | "internal_invariant_failed" | "llm_unavailable";
             /** Details */
             details?: components["schemas"]["ErrorDetail"][] | null;
             /** Message */
@@ -454,6 +584,20 @@ export interface components {
             /** Outgoing */
             outgoing: components["schemas"]["Edge"][];
         };
+        /** NodePair */
+        NodePair: {
+            /**
+             * Basis
+             * @constant
+             */
+            basis: "text_similarity";
+            /** Identical Text */
+            identical_text: boolean;
+            new: components["schemas"]["NodeRef"];
+            old: components["schemas"]["NodeRef"];
+            /** Similarity */
+            similarity: number;
+        };
         /** NodeRef */
         NodeRef: {
             /** Id */
@@ -467,6 +611,14 @@ export interface components {
             span: components["schemas"]["Span"];
             /** Type */
             type: string;
+        };
+        /** OrderMove */
+        OrderMove: {
+            /** New Index */
+            new_index: number;
+            node: components["schemas"]["NodeRef"];
+            /** Old Index */
+            old_index: number;
         };
         /** ParamSpec */
         ParamSpec: {
@@ -543,6 +695,27 @@ export interface components {
             node_ids: string[];
             /** Title */
             title: string;
+        };
+        /** SequenceChange */
+        SequenceChange: {
+            /** Changed */
+            changed: boolean;
+            /** Moved */
+            moved: components["schemas"]["OrderMove"][];
+            /** New Critical Path */
+            new_critical_path: string[];
+            /** New Order */
+            new_order: string[];
+            /** New Status */
+            new_status: string;
+            /** Note */
+            note: string;
+            /** Old Critical Path */
+            old_critical_path: string[];
+            /** Old Order */
+            old_order: string[];
+            /** Old Status */
+            old_status: string;
         };
         /** SeverityCounts */
         SeverityCounts: {
@@ -727,6 +900,75 @@ export interface operations {
             };
         };
     };
+    post_diff_api_diff_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiffRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiffResult"];
+                };
+            };
+            /** @description 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 413 */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 422 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 504 */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     get_graph_api_graph__graph_id__get: {
         parameters: {
             query?: never;
@@ -746,6 +988,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GraphDocument"];
+                };
+            };
+            /** @description 404 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 413 */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 422 */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 500 */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description 504 */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_export_api_graph__graph_id__export__fmt__get: {
+        parameters: {
+            query?: {
+                view?: "graph" | "dag";
+            };
+            header?: never;
+            path: {
+                graph_id: string;
+                fmt: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The export as a file download */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description 404 */

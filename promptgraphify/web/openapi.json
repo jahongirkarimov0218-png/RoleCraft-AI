@@ -58,6 +58,59 @@
         "title": "AnalyzeResponse",
         "type": "object"
       },
+      "ConstraintChange": {
+        "additionalProperties": false,
+        "properties": {
+          "constraint": {
+            "$ref": "#/components/schemas/NodeRef"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "added",
+              "removed",
+              "probably_modified",
+              "moved",
+              "scope_changed"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NodeRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "similarity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Similarity"
+          }
+        },
+        "required": [
+          "kind",
+          "constraint",
+          "previous",
+          "similarity",
+          "detail"
+        ],
+        "title": "ConstraintChange",
+        "type": "object"
+      },
       "CycleReport": {
         "additionalProperties": false,
         "properties": {
@@ -352,6 +405,222 @@
         "title": "Diagnostic",
         "type": "object"
       },
+      "DiagnosticChange": {
+        "additionalProperties": false,
+        "properties": {
+          "diagnostic": {
+            "$ref": "#/components/schemas/Diagnostic"
+          },
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Labels",
+            "type": "array"
+          }
+        },
+        "required": [
+          "diagnostic",
+          "labels"
+        ],
+        "title": "DiagnosticChange",
+        "type": "object"
+      },
+      "DiffRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "new": {
+            "$ref": "#/components/schemas/DiffSide"
+          },
+          "old": {
+            "$ref": "#/components/schemas/DiffSide"
+          }
+        },
+        "required": [
+          "old",
+          "new"
+        ],
+        "title": "DiffRequest",
+        "type": "object"
+      },
+      "DiffResult": {
+        "additionalProperties": false,
+        "properties": {
+          "constraints": {
+            "items": {
+              "$ref": "#/components/schemas/ConstraintChange"
+            },
+            "title": "Constraints",
+            "type": "array"
+          },
+          "dependencies": {
+            "items": {
+              "$ref": "#/components/schemas/EdgeChange"
+            },
+            "title": "Dependencies",
+            "type": "array"
+          },
+          "diagnostics_new": {
+            "items": {
+              "$ref": "#/components/schemas/DiagnosticChange"
+            },
+            "title": "Diagnostics New",
+            "type": "array"
+          },
+          "diagnostics_resolved": {
+            "items": {
+              "$ref": "#/components/schemas/DiagnosticChange"
+            },
+            "title": "Diagnostics Resolved",
+            "type": "array"
+          },
+          "identical": {
+            "title": "Identical",
+            "type": "boolean"
+          },
+          "new_graph_id": {
+            "title": "New Graph Id",
+            "type": "string"
+          },
+          "nodes_added": {
+            "items": {
+              "$ref": "#/components/schemas/NodeRef"
+            },
+            "title": "Nodes Added",
+            "type": "array"
+          },
+          "nodes_removed": {
+            "items": {
+              "$ref": "#/components/schemas/NodeRef"
+            },
+            "title": "Nodes Removed",
+            "type": "array"
+          },
+          "old_graph_id": {
+            "title": "Old Graph Id",
+            "type": "string"
+          },
+          "probably_modified": {
+            "items": {
+              "$ref": "#/components/schemas/NodePair"
+            },
+            "title": "Probably Modified",
+            "type": "array"
+          },
+          "sequence": {
+            "$ref": "#/components/schemas/SequenceChange"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/DiffSummary"
+          }
+        },
+        "required": [
+          "old_graph_id",
+          "new_graph_id",
+          "identical",
+          "summary",
+          "nodes_added",
+          "nodes_removed",
+          "probably_modified",
+          "dependencies",
+          "constraints",
+          "sequence",
+          "diagnostics_new",
+          "diagnostics_resolved"
+        ],
+        "title": "DiffResult",
+        "type": "object"
+      },
+      "DiffSide": {
+        "additionalProperties": false,
+        "description": "One side of a comparison: a stored graph (``graph_id``) or files to analyse (exactly one).",
+        "properties": {
+          "files": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FileInput"
+                },
+                "maxItems": 200,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Files"
+          },
+          "graph_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{16}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Graph Id"
+          }
+        },
+        "title": "DiffSide",
+        "type": "object"
+      },
+      "DiffSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "constraints_changed": {
+            "title": "Constraints Changed",
+            "type": "integer"
+          },
+          "dependencies_added": {
+            "title": "Dependencies Added",
+            "type": "integer"
+          },
+          "dependencies_removed": {
+            "title": "Dependencies Removed",
+            "type": "integer"
+          },
+          "diagnostics_new": {
+            "title": "Diagnostics New",
+            "type": "integer"
+          },
+          "diagnostics_resolved": {
+            "title": "Diagnostics Resolved",
+            "type": "integer"
+          },
+          "nodes_added": {
+            "title": "Nodes Added",
+            "type": "integer"
+          },
+          "nodes_removed": {
+            "title": "Nodes Removed",
+            "type": "integer"
+          },
+          "probably_modified": {
+            "title": "Probably Modified",
+            "type": "integer"
+          },
+          "sequence_changed": {
+            "title": "Sequence Changed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "nodes_added",
+          "nodes_removed",
+          "probably_modified",
+          "dependencies_added",
+          "dependencies_removed",
+          "constraints_changed",
+          "sequence_changed",
+          "diagnostics_new",
+          "diagnostics_resolved"
+        ],
+        "title": "DiffSummary",
+        "type": "object"
+      },
       "Edge": {
         "additionalProperties": false,
         "properties": {
@@ -462,6 +731,46 @@
         "title": "Edge",
         "type": "object"
       },
+      "EdgeChange": {
+        "additionalProperties": false,
+        "properties": {
+          "edge": {
+            "$ref": "#/components/schemas/EdgeRef"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "kind": {
+            "enum": [
+              "added",
+              "removed"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "source_label": {
+            "title": "Source Label",
+            "type": "string"
+          },
+          "target_label": {
+            "title": "Target Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "edge",
+          "source_label",
+          "target_label",
+          "evidence"
+        ],
+        "title": "EdgeChange",
+        "type": "object"
+      },
       "EdgeRef": {
         "additionalProperties": false,
         "properties": {
@@ -510,6 +819,7 @@
               "input_too_large",
               "no_input",
               "duplicate_path",
+              "invalid_text",
               "not_found",
               "unsupported_schema",
               "timeout",
@@ -915,6 +1225,39 @@
         "title": "NodeDetail",
         "type": "object"
       },
+      "NodePair": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "const": "text_similarity",
+            "title": "Basis",
+            "type": "string"
+          },
+          "identical_text": {
+            "title": "Identical Text",
+            "type": "boolean"
+          },
+          "new": {
+            "$ref": "#/components/schemas/NodeRef"
+          },
+          "old": {
+            "$ref": "#/components/schemas/NodeRef"
+          },
+          "similarity": {
+            "title": "Similarity",
+            "type": "number"
+          }
+        },
+        "required": [
+          "old",
+          "new",
+          "similarity",
+          "identical_text",
+          "basis"
+        ],
+        "title": "NodePair",
+        "type": "object"
+      },
       "NodeRef": {
         "additionalProperties": false,
         "properties": {
@@ -951,6 +1294,29 @@
           "original_text"
         ],
         "title": "NodeRef",
+        "type": "object"
+      },
+      "OrderMove": {
+        "additionalProperties": false,
+        "properties": {
+          "new_index": {
+            "title": "New Index",
+            "type": "integer"
+          },
+          "node": {
+            "$ref": "#/components/schemas/NodeRef"
+          },
+          "old_index": {
+            "title": "Old Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "node",
+          "old_index",
+          "new_index"
+        ],
+        "title": "OrderMove",
         "type": "object"
       },
       "ParamSpec": {
@@ -1189,6 +1555,75 @@
           "evidence"
         ],
         "title": "Row",
+        "type": "object"
+      },
+      "SequenceChange": {
+        "additionalProperties": false,
+        "properties": {
+          "changed": {
+            "title": "Changed",
+            "type": "boolean"
+          },
+          "moved": {
+            "items": {
+              "$ref": "#/components/schemas/OrderMove"
+            },
+            "title": "Moved",
+            "type": "array"
+          },
+          "new_critical_path": {
+            "items": {
+              "type": "string"
+            },
+            "title": "New Critical Path",
+            "type": "array"
+          },
+          "new_order": {
+            "items": {
+              "type": "string"
+            },
+            "title": "New Order",
+            "type": "array"
+          },
+          "new_status": {
+            "title": "New Status",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "old_critical_path": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Old Critical Path",
+            "type": "array"
+          },
+          "old_order": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Old Order",
+            "type": "array"
+          },
+          "old_status": {
+            "title": "Old Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "changed",
+          "old_status",
+          "new_status",
+          "old_order",
+          "new_order",
+          "moved",
+          "old_critical_path",
+          "new_critical_path",
+          "note"
+        ],
+        "title": "SequenceChange",
         "type": "object"
       },
       "SeverityCounts": {
@@ -1577,6 +2012,87 @@
         ]
       }
     },
+    "/api/diff": {
+      "post": {
+        "operationId": "post_diff_api_diff_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiffRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiffResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "404"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "413"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "422"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "500"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "504"
+          }
+        },
+        "summary": "Compare two versions of a prompt (stored graphs or files to analyse)",
+        "tags": [
+          "analysis"
+        ]
+      }
+    },
     "/api/graph/{graph_id}": {
       "get": {
         "operationId": "get_graph_api_graph__graph_id__get",
@@ -1656,6 +2172,109 @@
           }
         },
         "summary": "A stored graph",
+        "tags": [
+          "graph"
+        ]
+      }
+    },
+    "/api/graph/{graph_id}/export/{fmt}": {
+      "get": {
+        "operationId": "get_export_api_graph__graph_id__export__fmt__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "graph_id",
+            "required": true,
+            "schema": {
+              "title": "Graph Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "fmt",
+            "required": true,
+            "schema": {
+              "title": "Fmt",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "view",
+            "required": false,
+            "schema": {
+              "default": "graph",
+              "enum": [
+                "graph",
+                "dag"
+              ],
+              "title": "View",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "The export as a file download"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "404"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "413"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "422"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "500"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "504"
+          }
+        },
+        "summary": "Download a stored graph as json, html, report, mermaid, graphml or svg",
         "tags": [
           "graph"
         ]

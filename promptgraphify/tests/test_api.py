@@ -5,8 +5,8 @@ from promptgraphify import graphjson
 from promptgraphify.analyze import analyze
 from promptgraphify.api.app import Settings, create_app
 from promptgraphify.api.schemas import ErrorResponse, normalize_input_path
-from promptgraphify.storage import SqliteGraphStore
 from promptgraphify.ir import GraphDocument
+from promptgraphify.storage import SqliteGraphStore
 
 PROMPT = (
     "# Triage\nYou are a support bot.\n1. Extract the ticket id from {{ticket}}.\n"
