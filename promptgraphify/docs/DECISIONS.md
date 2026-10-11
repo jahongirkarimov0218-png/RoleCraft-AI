@@ -229,10 +229,10 @@ What was built:
    category for obligations whose subject is the output (`output_obligation`). Folding both into one list would
    strip "Ответ должен включать ..." to the task infinitive and make it a task.
 2. Non-finite forms are looked up only after an opener or before a closer. Russian lists hold imperatives and Uzbek
-   lists stems/polite imperatives, so the infinitives (112 strict + 48 task) and verbal nouns (89 + 29) were derived
+   lists stems/polite imperatives, so the infinitives (111 strict + 48 task) and verbal nouns (89 + 29) were derived
    per entry. Russian: two independent annotators (agents) gave 244/246 identical answers; the 2 homographs
-   (перешли, раздели) were adjudicated and kept. 5 aspect partners were added (находить, получать, возвращать,
-   давать, включать). Uzbek: an annotator was compared with the regular rule (consonant + ish, vowel + sh); 181/183
+   (перешли, раздели) were adjudicated and kept. 4 aspect partners were added (находить, возвращать, давать,
+   включать); "получать" was added and then removed after the review (mostly "you will be receiving ..."). Uzbek: an annotator was compared with the regular rule (consonant + ish, vowel + sh); 181/183
    agreed; "ro'yxatlang" fixed (the rule did not strip -ng), "javoblash" dropped (non-standard; "javob berish" covers
    it). `быть`, `знать`, `понимать`, `помнить`, `работать`, `bo'lish` are excluded on purpose and tested.
 3. `SignalSet.match_start` / `match_end` pick the longest opener/closer: `find` keeps the first registered pattern
