@@ -48,8 +48,10 @@ def _skippable(word: str) -> bool:
     ("reply", "apply", "comply", "rely")."""
     if word in SIGNALS.prefix_words:
         return True
-    return len(word) > 4 and word.endswith("ly") and not any(
-        word in v["strict"] or word in v["task"] for v in SIGNALS.verbs.values()
+    return (
+        len(word) > 4
+        and word.endswith("ly")
+        and not any(word in v["strict"] or word in v["task"] for v in SIGNALS.verbs.values())
     )
 
 

@@ -731,37 +731,42 @@ def _signature(text: str) -> tuple[str | None, frozenset[str]]:
 
 
 def _link_conflicts(units, emit) -> None:
+    """Pairs of constraints/tasks of one file and agent with opposite polarity and similar wording. Only
+    positive x negative pairs can conflict, so units without a polarity (most of them) are never compared."""
     cands = [u for u in units if u.type in ("ConstraintNode", "TaskNode")]
-    sigs = {id(u): _signature(u.text) for u in cands}
-    for i, a in enumerate(cands):
-        for b in cands[i + 1 :]:
-            if a.file != b.file or a.agent != b.agent:
-                continue
-            pa, ta = sigs[id(a)]
-            pb, tb = sigs[id(b)]
-            if pa is None or pb is None or pa == pb or len(ta) < 2 or len(tb) < 2:
-                continue
-            jac = len(ta & tb) / len(ta | tb)
-            if jac == 1.0:
-                emit(
-                    a,
-                    b,
-                    "CONFLICTS_WITH",
-                    "INFERRED",
-                    [(a.file, a.span), (b.file, b.span)],
-                    "Same instruction with opposite polarity (always / never)",
-                    rule="conflict.polarity",
-                    confidence=0.7,
-                )
-            elif jac >= 0.6:
-                emit(
-                    a,
-                    b,
-                    "CONFLICTS_WITH",
-                    "AMBIGUOUS",
-                    [(a.file, a.span), (b.file, b.span)],
-                    "Similar instructions with opposite polarity",
-                    rule="conflict.partial_overlap",
-                    confidence=0.5,
-                    meta={"overlap": round(jac, 2)},
-                )
+    groups: dict[tuple, tuple[list, list]] = {}
+    for idx, u in enumerate(cands):
+        polarity, toks = _signature(u.text)
+        if polarity is None or len(toks) < 2:
+            continue
+        groups.setdefault((u.file, u.agent), ([], []))[0 if polarity == "pos" else 1].append((idx, u, toks))
+    pairs = []
+    for pos, neg in groups.values():
+        for ia, ua, ta in pos:
+            for ib, ub, tb in neg:
+                pairs.append((ia, ua, ta, ib, ub, tb) if ia < ib else (ib, ub, tb, ia, ua, ta))
+    for _, a, ta, _, b, tb in sorted(pairs, key=lambda p: (p[0], p[3])):
+        jac = len(ta & tb) / len(ta | tb)
+        if jac == 1.0:
+            emit(
+                a,
+                b,
+                "CONFLICTS_WITH",
+                "INFERRED",
+                [(a.file, a.span), (b.file, b.span)],
+                "Same instruction with opposite polarity (always / never)",
+                rule="conflict.polarity",
+                confidence=0.7,
+            )
+        elif jac >= 0.6:
+            emit(
+                a,
+                b,
+                "CONFLICTS_WITH",
+                "AMBIGUOUS",
+                [(a.file, a.span), (b.file, b.span)],
+                "Similar instructions with opposite polarity",
+                rule="conflict.partial_overlap",
+                confidence=0.5,
+                meta={"overlap": round(jac, 2)},
+            )

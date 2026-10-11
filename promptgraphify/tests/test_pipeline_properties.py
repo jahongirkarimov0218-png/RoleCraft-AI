@@ -154,3 +154,96 @@ def test_pathological_shapes_do_not_hang_or_crash():
     braces = "{{ " * 3_000
     for text in (one_long_line, many_open_tags, deep_lists, braces):
         assert validate_document(analyze({"p.md": text})) == []
+
+
+# ------------------------------------------------------------------ the scale fix: lines_between
+def _reference_lines(text, a, b):
+    from promptgraphify.text import split_lines
+
+    return [ln for ln in split_lines(text) if ln[1] > a and ln[0] < b]
+
+
+@settings(max_examples=400, deadline=None)
+@given(
+    st.lists(st.sampled_from(["a", "B", ".", "!", " ", "1", ":", "\n", "\r", "\r\n", "é", "😀"]), max_size=60).map(
+        "".join
+    ),
+    st.data(),
+)
+def test_lines_between_equals_filtering_the_full_split(text, data):
+    from promptgraphify.text import lines_between
+
+    a = data.draw(st.integers(0, len(text)))
+    b = data.draw(st.integers(a, len(text)))
+    assert lines_between(text, a, b) == _reference_lines(text, a, b)
+
+
+# -------------------------------------------------------- the scale fix: conflict search only compares opposites
+def _reference_conflicts(units, emit):
+    """The original all-pairs search, kept as the oracle for the faster one."""
+    from promptgraphify.relations import _signature
+
+    cands = [u for u in units if u.type in ("ConstraintNode", "TaskNode")]
+    sigs = {id(u): _signature(u.text) for u in cands}
+    for i, a in enumerate(cands):
+        for b in cands[i + 1 :]:
+            if a.file != b.file or a.agent != b.agent:
+                continue
+            pa, ta = sigs[id(a)]
+            pb, tb = sigs[id(b)]
+            if pa is None or pb is None or pa == pb or len(ta) < 2 or len(tb) < 2:
+                continue
+            jac = len(ta & tb) / len(ta | tb)
+            if jac == 1.0:
+                emit(a, b, "CONFLICTS_WITH", "INFERRED", rule="conflict.polarity")
+            elif jac >= 0.6:
+                emit(a, b, "CONFLICTS_WITH", "AMBIGUOUS", rule="conflict.partial_overlap", meta=round(jac, 2))
+
+
+CONFLICT_POOL = [
+    "Always answer in formal English.",
+    "Never answer in formal English.",
+    "Always cite the source document.",
+    "Never cite the source document.",
+    "Always use a polite tone with the customer.",
+    "Never use a polite tone with the customer.",
+    "Keep every answer under 50 words.",
+    "Never reveal the secret key.",
+    "Always reveal the secret key.",
+    "Summarize the report.",
+    "Do not summarize the report.",
+    "Always be brief.",
+    "Never be brief.",
+]
+
+
+@settings(max_examples=200, deadline=None)
+@given(st.lists(st.sampled_from(CONFLICT_POOL), min_size=2, max_size=30))
+def test_the_faster_conflict_search_finds_exactly_what_the_all_pairs_search_found(sentences):
+    from promptgraphify.extract import extract_source
+    from promptgraphify.relations import _link_conflicts
+
+    units = extract_source("p.txt", "\n".join(sentences)).drafts
+
+    def run(fn):
+        found = []
+        fn(units, lambda a, b, rel, status, *rest, **kw: found.append((a.span, b.span, rel, status, kw.get("rule"))))
+        return found
+
+    assert run(_link_conflicts) == run(_reference_conflicts)
+
+
+@settings(max_examples=500, deadline=None)
+@given(
+    st.lists(st.sampled_from(["a", "Z", "é", "я", "7", "_", ".", "'", "-", " ", "!", "😀", " "]), max_size=40).map(
+        "".join
+    ),
+    st.data(),
+)
+def test_token_before_equals_the_regex_it_replaced(text, data):
+    from promptgraphify.text import _TOKEN_BEFORE, token_before
+
+    i = data.draw(st.integers(0, len(text)))
+    line_start = data.draw(st.integers(0, i))
+    m = _TOKEN_BEFORE.search(text, line_start, i)
+    assert token_before(text, line_start, i) == (m.group(0) if m else "")

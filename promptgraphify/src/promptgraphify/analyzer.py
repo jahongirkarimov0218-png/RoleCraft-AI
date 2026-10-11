@@ -166,8 +166,10 @@ def rule_variables(f: Facts) -> list[Diagnostic]:
 # ---------------------------------------------------------------------------------------------------- tools
 def rule_tools(f: Facts) -> list[Diagnostic]:
     out = []
+    reported: set[str] = set()  # one finding per mention, one diagnostic per tool (the tool node is the evidence)
     for fi, nid in f.findings:
-        if fi.kind == "undefined_tool" and nid:
+        if fi.kind == "undefined_tool" and nid and nid not in reported:
+            reported.add(nid)
             n = f.by_id[nid]
             out.append(
                 _make(

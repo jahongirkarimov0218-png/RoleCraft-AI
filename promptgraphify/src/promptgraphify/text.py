@@ -16,7 +16,7 @@ CLOSERS = (
     "\"')]}*_"
     + "\N{RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK}\N{RIGHT DOUBLE QUOTATION MARK}\N{RIGHT SINGLE QUOTATION MARK}"
 )
-_TOKEN_BEFORE = re.compile(r"[\w.'\-]+$")
+_TOKEN_BEFORE = re.compile(r"[\w.'\-]+$")  # reference definition of token_before(); the function below is the fast form
 WORD = re.compile(r"[\w'\-]+", re.UNICODE)
 
 
@@ -37,6 +37,36 @@ def split_lines(text: str) -> list[Interval]:
     return out
 
 
+def token_before(text: str, line_start: int, i: int) -> str:
+    """The run of word characters, ``.``, ``'`` and ``-`` that ends at ``i`` (not past ``line_start``). A backwards
+    scan: a regex ``search`` from the line start would rescan the whole line for every period."""
+    k = i
+    while k > line_start and (text[k - 1].isalnum() or text[k - 1] in "_.'-"):
+        k -= 1
+    return text[k:i]
+
+
+def lines_between(text: str, a: int, b: int) -> list[Interval]:
+    """The lines of ``text`` that overlap ``text[a:b]`` (same intervals as :func:`split_lines`, filtered), found by
+    scanning only from the start of the line containing ``a`` up to ``b``: a unit costs its own length, not the
+    length of the whole file."""
+    n = len(text)
+    start = max(text.rfind("\n", 0, a), text.rfind("\r", 0, a)) + 1
+    out: list[Interval] = []
+    i = start
+    while start < b and i < n:
+        ch = text[i]
+        if ch == "\n" or ch == "\r":
+            out.append((start, i))
+            i += 2 if ch == "\r" and i + 1 < n and text[i + 1] == "\n" else 1
+            start = i
+        else:
+            i += 1
+    if start < n and start < b:
+        out.append((start, n))
+    return [ln for ln in out if ln[1] > a and ln[0] < b]
+
+
 def trim(text: str, a: int, b: int) -> Interval | None:
     while a < b and text[a].isspace():
         a += 1
@@ -53,8 +83,7 @@ def _is_boundary(text: str, line_start: int, i: int, j: int, line_end: int) -> b
     if j >= line_end:  # period at the end of the line
         return True
     # period followed by whitespace: guard abbreviations, initials, lowercase continuation
-    m = _TOKEN_BEFORE.search(text, line_start, i)
-    token = fold(m.group(0)).lower().strip(".'") if m else ""
+    token = fold(token_before(text, line_start, i)).lower().strip(".'")
     if token in SIGNALS.abbreviations:
         return False
     if len(token) == 1 and token.isalpha() and (i - 2 < line_start or text[i - 2].isspace()) and text[i - 1].isupper():
@@ -70,7 +99,7 @@ def split_sentences(text: str, a: int, b: int) -> list[Interval]:
 
     A newline ends a sentence unless the sentence is unfinished (no terminal punctuation) and the next
     line starts with a lowercase letter (a hard-wrapped sentence)."""
-    lines = [ln for ln in split_lines(text) if ln[1] > a and ln[0] < b]
+    lines = lines_between(text, a, b)
     lines = [(max(s, a), min(e, b)) for s, e in lines]
     out: list[Interval] = []
     cur: int | None = None

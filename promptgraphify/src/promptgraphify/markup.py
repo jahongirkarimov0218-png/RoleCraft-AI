@@ -28,6 +28,8 @@ TAG = re.compile(r"<(/?)([A-Za-z_][\w:.\-]*)((?:\s+[\w:.\-]+(?:\s*=\s*(?:\"[^\"]
 ATTR = re.compile(r"([\w:.\-]+)\s*=\s*(\"[^\"]*\"|'[^']*'|[^\s\"'<>/]+)")
 TRAILING_CLOSE = re.compile(r"</([A-Za-z_][\w:.\-]*)\s*>[ \t]*$")
 TOOL_SIG = re.compile(r"^`?([A-Za-z_][\w.\-]*)`?\s*(?:\(([^)]*)\))?\s*(?::\s*(\S.*))?$")
+# ``### tool_name`` under a tools heading: backticked, or shaped like an identifier (snake_case, camelCase, dotted)
+TOOL_HEADING = re.compile(r"^(`)?([A-Za-z_][\w.\-]*)`?(?:\s*\([^)]*\))?$")
 VAR_DECL = re.compile(r"^`?([^\W\d][\w.\-]*)`?\s*(?::|—|-)\s*(\S.*)$")
 
 
@@ -175,6 +177,15 @@ class _Scanner:
         chunks = [*c.chunks, c.collect]
         c.chunks, c.collect = [], []
         sub = "example" if "example" in c.flags else "context" if "context" in c.flags else "tool_def"
+        if sub == "tool_def" and c.kind == "heading" and not any(chunks):
+            # a tool heading with no body: the heading text itself is the definition
+            raw = self.text[c.span[0] : c.span[1]]
+            a = c.span[0] + len(raw) - len(raw.lstrip("#"))
+            t = trim(self.text, a, c.span[1])
+            if t is not None:
+                self.out.blocks.append(
+                    Block("opaque", t, c, sub=sub, name=c.attrs.get("name"), attrs=dict(c.attrs), opener=c.span)
+                )
         for chunk in (ch for ch in chunks if ch):
             span = (chunk[0][0], chunk[-1][1])
             self.out.blocks.append(
@@ -304,6 +315,13 @@ class _Scanner:
         c.role = SIGNALS.heading_roles.get(low)
         c.agent = agent_m.group("name").strip() if agent_m else None
         c.split_on_blank = bool(c.flags & {"example", "context"})
+        if self._ancestor_flag("tools") and "tools" not in c.flags:
+            tm = TOOL_HEADING.match(title)
+            if tm and (
+                tm.group(1) or "_" in tm.group(2) or "." in tm.group(2) or re.search(r"[a-z][A-Z]", tm.group(2))
+            ):
+                c.flags.add("tool_def")  # the section body is the tool's definition (D-023)
+                c.attrs["name"] = tm.group(2)
         self._push(c)
         self._struct(s + m.start(2), e)
         self.lead_in = None
