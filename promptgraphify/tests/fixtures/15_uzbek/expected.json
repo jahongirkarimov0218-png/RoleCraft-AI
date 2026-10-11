@@ -1,0 +1,42 @@
+{
+  "topics": [
+    "uzbek"
+  ],
+  "language": "uz",
+  "nodes": [
+    {
+      "key": "sys",
+      "type": "SystemNode",
+      "quote": "Sen mijozlarga xizmat ko'rsatuvchi yordamchisan."
+    },
+    {
+      "key": "answer",
+      "type": "TaskNode",
+      "quote": "Mijozning savoliga bilimlar bazasidan foydalanib javob ber."
+    },
+    {
+      "key": "no_prices",
+      "type": "ConstraintNode",
+      "quote": "Hech qachon ichki narxlarni oshkor qilma."
+    },
+    {
+      "key": "lang",
+      "type": "ConstraintNode",
+      "quote": "Javobni faqat o'zbek tilida yoz."
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "ContextNode"
+  ],
+  "absent_rules": [
+    "variable.undeclared",
+    "constraint.conflict",
+    "instruction.duplicate"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "edges": [],
+  "diagnostics": [],
+  "uncovered": []
+}

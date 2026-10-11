@@ -1,0 +1,64 @@
+{
+  "topics": [
+    "tool_schema"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "use_weather",
+      "type": "TaskNode",
+      "quote": "Use get_weather to answer weather questions."
+    },
+    {
+      "key": "no_email",
+      "type": "ConstraintNode",
+      "quote": "Never call send_email."
+    },
+    {
+      "key": "get_weather",
+      "type": "ToolNode",
+      "quote": "{\"name\": \"get_weather\", \"description\": \"Get the current weather for a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"city\": {\"type\": \"string\"}}, \"required\": [\"city\"]}}",
+      "defined": true
+    },
+    {
+      "key": "send_email",
+      "type": "ToolNode",
+      "quote": "send_email",
+      "defined": false
+    }
+  ],
+  "edges": [
+    {
+      "relation": "CALLS_TOOL",
+      "source": "use_weather",
+      "target": "get_weather",
+      "status": "EXTRACTED",
+      "evidence": [
+        "Use get_weather to answer weather questions."
+      ],
+      "reference": "get_weather"
+    },
+    {
+      "relation": "CONSTRAINS",
+      "source": "no_email",
+      "target": "send_email",
+      "status": "EXTRACTED",
+      "evidence": [
+        "Never call send_email."
+      ],
+      "reference": "send_email"
+    }
+  ],
+  "absent_types": [
+    "ExampleNode",
+    "SystemNode"
+  ],
+  "absent_rules": [
+    "tool.undefined",
+    "tool.unused",
+    "tool.permission_mismatch"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "diagnostics": [],
+  "uncovered": []
+}

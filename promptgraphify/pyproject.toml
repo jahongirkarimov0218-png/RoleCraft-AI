@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "promptgraphify"
+version = "0.1.0"
+description = "Static analyzer and graph visualizer for LLM prompts. Community-built; not affiliated with Graphify Labs."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.14,<3",   # IR / API schemas (task constraint 5)
+    "networkx>=3.7,<4",    # topological order, cycles, paths (task constraint 5)
+    "pyyaml>=6.0,<7",      # YAML prompt input; only yaml.safe_load is used
+    "fastapi>=0.143,<1",   # HTTP API (task constraint 5)
+    "uvicorn>=0.54,<1",    # ASGI server for the API
+]
+
+[project.scripts]
+promptgraphify = "promptgraphify.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1,<10",
+    "hypothesis>=6.150",   # property tests for spans / ids / determinism
+    "ruff>=0.17",
+    "httpx2>=2.13.1",      # FastAPI/Starlette TestClient (httpx is deprecated there)
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/promptgraphify"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+    "slow: performance / scale tests",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S"]
+ignore = ["S101"]  # asserts are fine in tests
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S"]

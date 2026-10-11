@@ -1,0 +1,2 @@
+Greet {{user.name}} and mention the {{ plan | upper }} plan.
+Escalate to {{ {{manager}} }} if the plan is {{unfinished.

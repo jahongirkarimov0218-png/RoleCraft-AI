@@ -1,0 +1,45 @@
+{
+  "topics": [
+    "few_shot",
+    "tool_schema"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "get_weather",
+      "type": "ToolNode",
+      "quote": "get_weather(city): current weather for a city",
+      "defined": true
+    },
+    {
+      "key": "ex",
+      "type": "ExampleNode",
+      "quote": "User: Weather in Paris?\nAssistant: get_weather(\"Paris\")"
+    }
+  ],
+  "edges": [
+    {
+      "relation": "EXEMPLIFIES",
+      "source": "ex",
+      "target": "get_weather",
+      "status": "EXTRACTED",
+      "evidence": [
+        "<example tool=\"get_weather\">"
+      ],
+      "reference": "tool=\"get_weather\""
+    }
+  ],
+  "absent_types": [
+    "TaskNode",
+    "SystemNode",
+    "ConstraintNode",
+    "ContextNode"
+  ],
+  "absent_rules": [
+    "tool.unused",
+    "tool.undefined"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "diagnostics": [],
+  "uncovered": []
+}

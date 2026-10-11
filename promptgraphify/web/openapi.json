@@ -1,0 +1,2732 @@
+{
+  "components": {
+    "schemas": {
+      "AnalysisConfig": {
+        "additionalProperties": false,
+        "properties": {
+          "layer_b": {
+            "title": "Layer B",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "layer_b"
+        ],
+        "title": "AnalysisConfig",
+        "type": "object"
+      },
+      "AnalyzeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "files": {
+            "items": {
+              "$ref": "#/components/schemas/FileInput"
+            },
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Files",
+            "type": "array"
+          },
+          "layer_b": {
+            "default": false,
+            "description": "Enable the optional LLM layer. Off by default; when on, the prompt text is sent to the configured provider (see /api/health). 503 llm_unavailable if no provider is configured.",
+            "title": "Layer B",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "files"
+        ],
+        "title": "AnalyzeRequest",
+        "type": "object"
+      },
+      "AnalyzeResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "graph": {
+            "$ref": "#/components/schemas/GraphDocument"
+          },
+          "graph_id": {
+            "title": "Graph Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "graph_id",
+          "graph"
+        ],
+        "title": "AnalyzeResponse",
+        "type": "object"
+      },
+      "ConstraintChange": {
+        "additionalProperties": false,
+        "properties": {
+          "constraint": {
+            "$ref": "#/components/schemas/NodeRef"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "added",
+              "removed",
+              "probably_modified",
+              "moved",
+              "scope_changed"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "previous": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NodeRef"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "similarity": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Similarity"
+          }
+        },
+        "required": [
+          "kind",
+          "constraint",
+          "previous",
+          "similarity",
+          "detail"
+        ],
+        "title": "ConstraintChange",
+        "type": "object"
+      },
+      "CycleReport": {
+        "additionalProperties": false,
+        "properties": {
+          "certainty": {
+            "enum": [
+              "proven",
+              "probable"
+            ],
+            "title": "Certainty",
+            "type": "string"
+          },
+          "edges": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Edges",
+            "type": "array"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "nodes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Nodes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "nodes",
+          "edges",
+          "evidence",
+          "certainty"
+        ],
+        "title": "CycleReport",
+        "type": "object"
+      },
+      "DagEdge": {
+        "additionalProperties": false,
+        "properties": {
+          "condition": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Condition"
+          },
+          "conditional": {
+            "title": "Conditional",
+            "type": "boolean"
+          },
+          "graph_edge": {
+            "title": "Graph Edge",
+            "type": "string"
+          },
+          "loop": {
+            "title": "Loop",
+            "type": "boolean"
+          },
+          "relation": {
+            "enum": [
+              "DEPENDS_ON",
+              "CONSTRAINS",
+              "PROVIDES_CONTEXT",
+              "CALLS_TOOL",
+              "PRODUCES",
+              "REFERENCES",
+              "OVERRIDES",
+              "CONFLICTS_WITH",
+              "PRECEDES",
+              "EXEMPLIFIES",
+              "CONDITIONALLY_EXECUTES"
+            ],
+            "title": "Relation",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "target",
+          "relation",
+          "graph_edge",
+          "conditional",
+          "condition",
+          "loop"
+        ],
+        "title": "DagEdge",
+        "type": "object"
+      },
+      "DagView": {
+        "additionalProperties": false,
+        "properties": {
+          "acyclic_subgraph": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/DagEdge"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Acyclic Subgraph"
+          },
+          "critical_path": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Critical Path",
+            "type": "array"
+          },
+          "cycles": {
+            "items": {
+              "$ref": "#/components/schemas/CycleReport"
+            },
+            "title": "Cycles",
+            "type": "array"
+          },
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/DagEdge"
+            },
+            "title": "Edges",
+            "type": "array"
+          },
+          "loops": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Loops",
+            "type": "array"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/MetricValue"
+            },
+            "title": "Metrics",
+            "type": "array"
+          },
+          "removed_for_acyclic": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Removed For Acyclic",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "blocked",
+              "empty"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "topological_order": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Topological Order",
+            "type": "array"
+          },
+          "unresolved": {
+            "items": {
+              "$ref": "#/components/schemas/UnresolvedDependency"
+            },
+            "title": "Unresolved",
+            "type": "array"
+          },
+          "vertices": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Vertices",
+            "type": "array"
+          }
+        },
+        "required": [
+          "status",
+          "vertices",
+          "edges",
+          "topological_order",
+          "critical_path",
+          "unresolved",
+          "cycles",
+          "acyclic_subgraph",
+          "removed_for_acyclic",
+          "loops",
+          "metrics"
+        ],
+        "title": "DagView",
+        "type": "object"
+      },
+      "Diagnostic": {
+        "additionalProperties": false,
+        "properties": {
+          "affected_edges": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Affected Edges",
+            "type": "array"
+          },
+          "affected_nodes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Affected Nodes",
+            "type": "array"
+          },
+          "certainty": {
+            "enum": [
+              "proven",
+              "probable"
+            ],
+            "title": "Certainty",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "detection": {
+            "enum": [
+              "deterministic",
+              "heuristic",
+              "llm"
+            ],
+            "title": "Detection",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "rule_id": {
+            "title": "Rule Id",
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning",
+              "info"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "suggested_fix": {
+            "title": "Suggested Fix",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "rule_id",
+          "severity",
+          "certainty",
+          "detection",
+          "description",
+          "evidence",
+          "affected_nodes",
+          "affected_edges",
+          "suggested_fix"
+        ],
+        "title": "Diagnostic",
+        "type": "object"
+      },
+      "DiagnosticChange": {
+        "additionalProperties": false,
+        "properties": {
+          "diagnostic": {
+            "$ref": "#/components/schemas/Diagnostic"
+          },
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Labels",
+            "type": "array"
+          }
+        },
+        "required": [
+          "diagnostic",
+          "labels"
+        ],
+        "title": "DiagnosticChange",
+        "type": "object"
+      },
+      "DiffRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "new": {
+            "$ref": "#/components/schemas/DiffSide"
+          },
+          "old": {
+            "$ref": "#/components/schemas/DiffSide"
+          }
+        },
+        "required": [
+          "old",
+          "new"
+        ],
+        "title": "DiffRequest",
+        "type": "object"
+      },
+      "DiffResult": {
+        "additionalProperties": false,
+        "properties": {
+          "constraints": {
+            "items": {
+              "$ref": "#/components/schemas/ConstraintChange"
+            },
+            "title": "Constraints",
+            "type": "array"
+          },
+          "dependencies": {
+            "items": {
+              "$ref": "#/components/schemas/EdgeChange"
+            },
+            "title": "Dependencies",
+            "type": "array"
+          },
+          "diagnostics_new": {
+            "items": {
+              "$ref": "#/components/schemas/DiagnosticChange"
+            },
+            "title": "Diagnostics New",
+            "type": "array"
+          },
+          "diagnostics_resolved": {
+            "items": {
+              "$ref": "#/components/schemas/DiagnosticChange"
+            },
+            "title": "Diagnostics Resolved",
+            "type": "array"
+          },
+          "identical": {
+            "title": "Identical",
+            "type": "boolean"
+          },
+          "new_graph_id": {
+            "title": "New Graph Id",
+            "type": "string"
+          },
+          "nodes_added": {
+            "items": {
+              "$ref": "#/components/schemas/NodeRef"
+            },
+            "title": "Nodes Added",
+            "type": "array"
+          },
+          "nodes_removed": {
+            "items": {
+              "$ref": "#/components/schemas/NodeRef"
+            },
+            "title": "Nodes Removed",
+            "type": "array"
+          },
+          "old_graph_id": {
+            "title": "Old Graph Id",
+            "type": "string"
+          },
+          "probably_modified": {
+            "items": {
+              "$ref": "#/components/schemas/NodePair"
+            },
+            "title": "Probably Modified",
+            "type": "array"
+          },
+          "sequence": {
+            "$ref": "#/components/schemas/SequenceChange"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/DiffSummary"
+          }
+        },
+        "required": [
+          "old_graph_id",
+          "new_graph_id",
+          "identical",
+          "summary",
+          "nodes_added",
+          "nodes_removed",
+          "probably_modified",
+          "dependencies",
+          "constraints",
+          "sequence",
+          "diagnostics_new",
+          "diagnostics_resolved"
+        ],
+        "title": "DiffResult",
+        "type": "object"
+      },
+      "DiffSide": {
+        "additionalProperties": false,
+        "description": "One side of a comparison: a stored graph (``graph_id``) or files to analyse (exactly one).",
+        "properties": {
+          "files": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FileInput"
+                },
+                "maxItems": 200,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Files"
+          },
+          "graph_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{16}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Graph Id"
+          }
+        },
+        "title": "DiffSide",
+        "type": "object"
+      },
+      "DiffSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "constraints_changed": {
+            "title": "Constraints Changed",
+            "type": "integer"
+          },
+          "dependencies_added": {
+            "title": "Dependencies Added",
+            "type": "integer"
+          },
+          "dependencies_removed": {
+            "title": "Dependencies Removed",
+            "type": "integer"
+          },
+          "diagnostics_new": {
+            "title": "Diagnostics New",
+            "type": "integer"
+          },
+          "diagnostics_resolved": {
+            "title": "Diagnostics Resolved",
+            "type": "integer"
+          },
+          "nodes_added": {
+            "title": "Nodes Added",
+            "type": "integer"
+          },
+          "nodes_removed": {
+            "title": "Nodes Removed",
+            "type": "integer"
+          },
+          "probably_modified": {
+            "title": "Probably Modified",
+            "type": "integer"
+          },
+          "sequence_changed": {
+            "title": "Sequence Changed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "nodes_added",
+          "nodes_removed",
+          "probably_modified",
+          "dependencies_added",
+          "dependencies_removed",
+          "constraints_changed",
+          "sequence_changed",
+          "diagnostics_new",
+          "diagnostics_resolved"
+        ],
+        "title": "DiffSummary",
+        "type": "object"
+      },
+      "Edge": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "extraction_method": {
+            "pattern": "^(deterministic|llm):[A-Za-z0-9_.\\-]+$",
+            "title": "Extraction Method",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Metadata",
+            "type": "object"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference"
+          },
+          "relation": {
+            "enum": [
+              "DEPENDS_ON",
+              "CONSTRAINS",
+              "PROVIDES_CONTEXT",
+              "CALLS_TOOL",
+              "PRODUCES",
+              "REFERENCES",
+              "OVERRIDES",
+              "CONFLICTS_WITH",
+              "PRECEDES",
+              "EXEMPLIFIES",
+              "CONDITIONALLY_EXECUTES"
+            ],
+            "title": "Relation",
+            "type": "string"
+          },
+          "rule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "EXTRACTED",
+              "INFERRED",
+              "AMBIGUOUS"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "confidence",
+          "id",
+          "source",
+          "target",
+          "relation",
+          "rationale",
+          "evidence",
+          "status",
+          "reference",
+          "rule",
+          "extraction_method",
+          "metadata"
+        ],
+        "title": "Edge",
+        "type": "object"
+      },
+      "EdgeChange": {
+        "additionalProperties": false,
+        "properties": {
+          "edge": {
+            "$ref": "#/components/schemas/EdgeRef"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "kind": {
+            "enum": [
+              "added",
+              "removed"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "source_label": {
+            "title": "Source Label",
+            "type": "string"
+          },
+          "target_label": {
+            "title": "Target Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "edge",
+          "source_label",
+          "target_label",
+          "evidence"
+        ],
+        "title": "EdgeChange",
+        "type": "object"
+      },
+      "EdgeRef": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "relation": {
+            "title": "Relation",
+            "type": "string"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "relation",
+          "status",
+          "source",
+          "target",
+          "rationale"
+        ],
+        "title": "EdgeRef",
+        "type": "object"
+      },
+      "ErrorBody": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "invalid_request",
+              "input_too_large",
+              "no_input",
+              "duplicate_path",
+              "invalid_text",
+              "not_found",
+              "unsupported_schema",
+              "timeout",
+              "internal_error",
+              "internal_invariant_failed",
+              "llm_unavailable"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorBody",
+        "type": "object"
+      },
+      "ErrorDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "title": "ErrorDetail",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "Evidence": {
+        "additionalProperties": false,
+        "properties": {
+          "source_file": {
+            "title": "Source File",
+            "type": "string"
+          },
+          "span": {
+            "$ref": "#/components/schemas/Span"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_file",
+          "span",
+          "text"
+        ],
+        "title": "Evidence",
+        "type": "object"
+      },
+      "FileInput": {
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "description": "Relative POSIX path used as the source name, e.g. 'agents/planner.md'.",
+            "title": "Path",
+            "type": "string"
+          },
+          "text": {
+            "description": "File content exactly as it should be analysed (not normalised).",
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "text"
+        ],
+        "title": "FileInput",
+        "type": "object"
+      },
+      "GraphDocument": {
+        "additionalProperties": false,
+        "description": "The content of graph.json. No timestamps or host data: same input -> same bytes.",
+        "properties": {
+          "analyzer_version": {
+            "title": "Analyzer Version",
+            "type": "string"
+          },
+          "config": {
+            "$ref": "#/components/schemas/AnalysisConfig"
+          },
+          "coverage": {
+            "items": {
+              "$ref": "#/components/schemas/SourceCoverage"
+            },
+            "title": "Coverage",
+            "type": "array"
+          },
+          "dag": {
+            "$ref": "#/components/schemas/DagView"
+          },
+          "diagnostics": {
+            "items": {
+              "$ref": "#/components/schemas/Diagnostic"
+            },
+            "title": "Diagnostics",
+            "type": "array"
+          },
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/Edge"
+            },
+            "title": "Edges",
+            "type": "array"
+          },
+          "graph_id": {
+            "title": "Graph Id",
+            "type": "string"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/Node"
+            },
+            "title": "Nodes",
+            "type": "array"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceFile"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "tool": {
+            "$ref": "#/components/schemas/ToolInfo"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "tool",
+          "analyzer_version",
+          "graph_id",
+          "config",
+          "sources",
+          "nodes",
+          "edges",
+          "diagnostics",
+          "coverage",
+          "dag",
+          "warnings"
+        ],
+        "title": "GraphDocument",
+        "type": "object"
+      },
+      "Health": {
+        "additionalProperties": false,
+        "properties": {
+          "llm_enabled": {
+            "description": "True if an LLM provider is configured, i.e. a request may ask for the optional LLM layer. The layer itself is off unless a request sets layer_b.",
+            "title": "Llm Enabled",
+            "type": "boolean"
+          },
+          "llm_endpoint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Host (and port) the prompt text is sent to when layer_b is on.",
+            "title": "Llm Endpoint"
+          },
+          "llm_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Model"
+          },
+          "llm_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Provider"
+          },
+          "schema_version": {
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "version",
+          "schema_version",
+          "llm_enabled",
+          "llm_provider",
+          "llm_model",
+          "llm_endpoint"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
+      "JsonValue": {},
+      "MetricValue": {
+        "additionalProperties": false,
+        "properties": {
+          "definition": {
+            "title": "Definition",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "value": {
+            "$ref": "#/components/schemas/JsonValue"
+          }
+        },
+        "required": [
+          "name",
+          "value",
+          "definition"
+        ],
+        "title": "MetricValue",
+        "type": "object"
+      },
+      "Node": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 1.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "decoded_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decoded Text"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "extraction_method": {
+            "pattern": "^(deterministic|llm):[A-Za-z0-9_.\\-]+$",
+            "title": "Extraction Method",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "metadata": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Metadata",
+            "type": "object"
+          },
+          "original_text": {
+            "title": "Original Text",
+            "type": "string"
+          },
+          "role_scope": {
+            "$ref": "#/components/schemas/RoleScope"
+          },
+          "source_file": {
+            "title": "Source File",
+            "type": "string"
+          },
+          "source_span": {
+            "$ref": "#/components/schemas/Span"
+          },
+          "type": {
+            "enum": [
+              "SystemNode",
+              "TaskNode",
+              "ContextNode",
+              "ConstraintNode",
+              "ToolNode",
+              "ExampleNode"
+            ],
+            "title": "Type",
+            "type": "string"
+          },
+          "validation_status": {
+            "enum": [
+              "unverified",
+              "verified",
+              "downgraded"
+            ],
+            "title": "Validation Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "confidence",
+          "id",
+          "type",
+          "label",
+          "description",
+          "original_text",
+          "decoded_text",
+          "source_file",
+          "source_span",
+          "role_scope",
+          "metadata",
+          "extraction_method",
+          "validation_status"
+        ],
+        "title": "Node",
+        "type": "object"
+      },
+      "NodeDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "diagnostics": {
+            "items": {
+              "$ref": "#/components/schemas/Diagnostic"
+            },
+            "title": "Diagnostics",
+            "type": "array"
+          },
+          "incoming": {
+            "items": {
+              "$ref": "#/components/schemas/Edge"
+            },
+            "title": "Incoming",
+            "type": "array"
+          },
+          "node": {
+            "$ref": "#/components/schemas/Node"
+          },
+          "outgoing": {
+            "items": {
+              "$ref": "#/components/schemas/Edge"
+            },
+            "title": "Outgoing",
+            "type": "array"
+          }
+        },
+        "required": [
+          "node",
+          "incoming",
+          "outgoing",
+          "diagnostics"
+        ],
+        "title": "NodeDetail",
+        "type": "object"
+      },
+      "NodePair": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "const": "text_similarity",
+            "title": "Basis",
+            "type": "string"
+          },
+          "identical_text": {
+            "title": "Identical Text",
+            "type": "boolean"
+          },
+          "new": {
+            "$ref": "#/components/schemas/NodeRef"
+          },
+          "old": {
+            "$ref": "#/components/schemas/NodeRef"
+          },
+          "similarity": {
+            "title": "Similarity",
+            "type": "number"
+          }
+        },
+        "required": [
+          "old",
+          "new",
+          "similarity",
+          "identical_text",
+          "basis"
+        ],
+        "title": "NodePair",
+        "type": "object"
+      },
+      "NodeRef": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "original_text": {
+            "title": "Original Text",
+            "type": "string"
+          },
+          "source_file": {
+            "title": "Source File",
+            "type": "string"
+          },
+          "span": {
+            "$ref": "#/components/schemas/Span"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "label",
+          "source_file",
+          "span",
+          "original_text"
+        ],
+        "title": "NodeRef",
+        "type": "object"
+      },
+      "OrderMove": {
+        "additionalProperties": false,
+        "properties": {
+          "new_index": {
+            "title": "New Index",
+            "type": "integer"
+          },
+          "node": {
+            "$ref": "#/components/schemas/NodeRef"
+          },
+          "old_index": {
+            "title": "Old Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "node",
+          "old_index",
+          "new_index"
+        ],
+        "title": "OrderMove",
+        "type": "object"
+      },
+      "ParamSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "required": {
+            "title": "Required",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "required"
+        ],
+        "title": "ParamSpec",
+        "type": "object"
+      },
+      "QueryResult": {
+        "additionalProperties": false,
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/NodeRef"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "edges": {
+            "items": {
+              "$ref": "#/components/schemas/EdgeRef"
+            },
+            "title": "Edges",
+            "type": "array"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/NodeRef"
+            },
+            "title": "Nodes",
+            "type": "array"
+          },
+          "params": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Params",
+            "type": "object"
+          },
+          "paths": {
+            "items": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "title": "Paths",
+            "type": "array"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/Row"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "ambiguous",
+              "not_found",
+              "no_path",
+              "invalid"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "params",
+          "status",
+          "summary",
+          "rows",
+          "nodes",
+          "edges",
+          "paths",
+          "candidates"
+        ],
+        "title": "QueryResult",
+        "type": "object"
+      },
+      "QuerySpec": {
+        "additionalProperties": false,
+        "properties": {
+          "definition": {
+            "title": "Definition",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "params": {
+            "items": {
+              "$ref": "#/components/schemas/ParamSpec"
+            },
+            "title": "Params",
+            "type": "array"
+          },
+          "question": {
+            "title": "Question",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "title",
+          "question",
+          "definition",
+          "params"
+        ],
+        "title": "QuerySpec",
+        "type": "object"
+      },
+      "RoleScope": {
+        "additionalProperties": false,
+        "description": "Who speaks / which agent owns a unit. Replaces extra node types (ontology is closed).",
+        "properties": {
+          "agent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "system",
+                  "developer",
+                  "user",
+                  "assistant",
+                  "tool"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          }
+        },
+        "required": [
+          "role",
+          "agent"
+        ],
+        "title": "RoleScope",
+        "type": "object"
+      },
+      "Row": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "enum": [
+              "explicit",
+              "inferred",
+              "mixed",
+              "structural"
+            ],
+            "title": "Basis",
+            "type": "string"
+          },
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "edge_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Edge Ids",
+            "type": "array"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "node_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Node Ids",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "detail",
+          "basis",
+          "node_ids",
+          "edge_ids",
+          "evidence"
+        ],
+        "title": "Row",
+        "type": "object"
+      },
+      "SequenceChange": {
+        "additionalProperties": false,
+        "properties": {
+          "changed": {
+            "title": "Changed",
+            "type": "boolean"
+          },
+          "moved": {
+            "items": {
+              "$ref": "#/components/schemas/OrderMove"
+            },
+            "title": "Moved",
+            "type": "array"
+          },
+          "new_critical_path": {
+            "items": {
+              "type": "string"
+            },
+            "title": "New Critical Path",
+            "type": "array"
+          },
+          "new_order": {
+            "items": {
+              "type": "string"
+            },
+            "title": "New Order",
+            "type": "array"
+          },
+          "new_status": {
+            "title": "New Status",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "old_critical_path": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Old Critical Path",
+            "type": "array"
+          },
+          "old_order": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Old Order",
+            "type": "array"
+          },
+          "old_status": {
+            "title": "Old Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "changed",
+          "old_status",
+          "new_status",
+          "old_order",
+          "new_order",
+          "moved",
+          "old_critical_path",
+          "new_critical_path",
+          "note"
+        ],
+        "title": "SequenceChange",
+        "type": "object"
+      },
+      "SeverityCounts": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "title": "Error",
+            "type": "integer"
+          },
+          "info": {
+            "title": "Info",
+            "type": "integer"
+          },
+          "warning": {
+            "title": "Warning",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "error",
+          "warning",
+          "info"
+        ],
+        "title": "SeverityCounts",
+        "type": "object"
+      },
+      "SourceCoverage": {
+        "additionalProperties": false,
+        "description": "Partition of the non-whitespace code points of one source (ANALYSIS_SPEC §2).",
+        "properties": {
+          "covered": {
+            "title": "Covered",
+            "type": "integer"
+          },
+          "source_file": {
+            "title": "Source File",
+            "type": "string"
+          },
+          "structural": {
+            "title": "Structural",
+            "type": "integer"
+          },
+          "structural_spans": {
+            "items": {
+              "$ref": "#/components/schemas/Span"
+            },
+            "title": "Structural Spans",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "uncovered": {
+            "title": "Uncovered",
+            "type": "integer"
+          },
+          "uncovered_spans": {
+            "items": {
+              "$ref": "#/components/schemas/Span"
+            },
+            "title": "Uncovered Spans",
+            "type": "array"
+          }
+        },
+        "required": [
+          "source_file",
+          "total",
+          "covered",
+          "structural",
+          "uncovered",
+          "structural_spans",
+          "uncovered_spans"
+        ],
+        "title": "SourceCoverage",
+        "type": "object"
+      },
+      "SourceFile": {
+        "additionalProperties": false,
+        "properties": {
+          "has_bom": {
+            "title": "Has Bom",
+            "type": "boolean"
+          },
+          "length": {
+            "title": "Length",
+            "type": "integer"
+          },
+          "newline": {
+            "enum": [
+              "none",
+              "lf",
+              "crlf",
+              "cr",
+              "mixed"
+            ],
+            "title": "Newline",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "text",
+          "sha256",
+          "length",
+          "has_bom",
+          "newline"
+        ],
+        "title": "SourceFile",
+        "type": "object"
+      },
+      "Span": {
+        "additionalProperties": false,
+        "properties": {
+          "end": {
+            "minimum": 0.0,
+            "title": "End",
+            "type": "integer"
+          },
+          "start": {
+            "minimum": 0.0,
+            "title": "Start",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "Span",
+        "type": "object"
+      },
+      "ToolInfo": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "default": "promptgraphify",
+            "title": "Name",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "version"
+        ],
+        "title": "ToolInfo",
+        "type": "object"
+      },
+      "UnresolvedDependency": {
+        "additionalProperties": false,
+        "properties": {
+          "evidence": {
+            "$ref": "#/components/schemas/Evidence"
+          },
+          "node_id": {
+            "title": "Node Id",
+            "type": "string"
+          },
+          "reference": {
+            "title": "Reference",
+            "type": "string"
+          }
+        },
+        "required": [
+          "node_id",
+          "reference",
+          "evidence"
+        ],
+        "title": "UnresolvedDependency",
+        "type": "object"
+      },
+      "ValidateRequest": {
+        "additionalProperties": false,
+        "description": "Either analyse ``files`` or check an existing ``graph`` document (exactly one).",
+        "properties": {
+          "files": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FileInput"
+                },
+                "maxItems": 200,
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Files"
+          },
+          "graph": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GraphDocument"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "ValidateRequest",
+        "type": "object"
+      },
+      "ValidateResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "counts": {
+            "$ref": "#/components/schemas/SeverityCounts"
+          },
+          "diagnostics": {
+            "items": {
+              "$ref": "#/components/schemas/Diagnostic"
+            },
+            "title": "Diagnostics",
+            "type": "array"
+          },
+          "graph_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Graph Id"
+          },
+          "ok": {
+            "description": "False if the graph is invalid or any diagnostic has severity 'error'.",
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "violations": {
+            "items": {
+              "$ref": "#/components/schemas/ViolationOut"
+            },
+            "title": "Violations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "ok",
+          "graph_id",
+          "violations",
+          "diagnostics",
+          "counts"
+        ],
+        "title": "ValidateResponse",
+        "type": "object"
+      },
+      "ViolationOut": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "subject"
+        ],
+        "title": "ViolationOut",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Static analysis of LLM prompts into a knowledge graph and an execution DAG. Community-built; not affiliated with Graphify Labs.",
+    "title": "PromptGraphify API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/analyze": {
+      "post": {
+        "operationId": "post_analyze_api_analyze_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyzeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyzeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "404"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "413"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "422"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "500"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "504"
+          }
+        },
+        "summary": "Analyze prompt files into a knowledge graph and an execution DAG",
+        "tags": [
+          "analysis"
+        ]
+      }
+    },
+    "/api/diff": {
+      "post": {
+        "operationId": "post_diff_api_diff_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiffRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiffResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "404"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "413"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "422"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "500"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "504"
+          }
+        },
+        "summary": "Compare two versions of a prompt (stored graphs or files to analyse)",
+        "tags": [
+          "analysis"
+        ]
+      }
+    },
+    "/api/graph/{graph_id}": {
+      "get": {
+        "operationId": "get_graph_api_graph__graph_id__get",
+        "parameters": [
+          {
+            "description": "16 hex digits",
+            "in": "path",
+            "name": "graph_id",
+            "required": true,
+            "schema": {
+              "description": "16 hex digits",
+              "title": "Graph Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphDocument"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "404"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "413"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "422"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "500"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "504"
+          }
+        },
+        "summary": "A stored graph",
+        "tags": [
+          "graph"
+        ]
+      }
+    },
+    "/api/graph/{graph_id}/export/{fmt}": {
+      "get": {
+        "operationId": "get_export_api_graph__graph_id__export__fmt__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "graph_id",
+            "required": true,
+            "schema": {
+              "title": "Graph Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "fmt",
+            "required": true,
+            "schema": {
+              "title": "Fmt",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "view",
+            "required": false,
+            "schema": {
+              "default": "graph",
+              "enum": [
+                "graph",
+                "dag"
+              ],
+              "title": "View",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "The export as a file download"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "404"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "413"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "422"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "500"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "504"
+          }
+        },
+        "summary": "Download a stored graph as json, html, report, mermaid, graphml or svg",
+        "tags": [
+          "graph"
+        ]
+      }
+    },
+    "/api/graph/{graph_id}/node/{node_id}": {
+      "get": {
+        "operationId": "get_node_api_graph__graph_id__node__node_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "graph_id",
+            "required": true,
+            "schema": {
+              "title": "Graph Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "title": "Node Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NodeDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "404"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "413"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "422"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "500"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "504"
+          }
+        },
+        "summary": "One node with its edges and diagnostics",
+        "tags": [
+          "graph"
+        ]
+      }
+    },
+    "/api/graph/{graph_id}/path": {
+      "get": {
+        "operationId": "get_path_api_graph__graph_id__path_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "graph_id",
+            "required": true,
+            "schema": {
+              "title": "Graph Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "source",
+            "required": true,
+            "schema": {
+              "maxLength": 400,
+              "minLength": 1,
+              "title": "Source",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "target",
+            "required": true,
+            "schema": {
+              "maxLength": 400,
+              "minLength": 1,
+              "title": "Target",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "undirected",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Undirected",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "404"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "413"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "422"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "500"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "504"
+          }
+        },
+        "summary": "Shortest path between two nodes (query 'shortest_path')",
+        "tags": [
+          "graph"
+        ]
+      }
+    },
+    "/api/graph/{graph_id}/query/{name}": {
+      "get": {
+        "operationId": "get_query_api_graph__graph_id__query__name__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "graph_id",
+            "required": true,
+            "schema": {
+              "title": "Graph Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "title": "Name",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryResult"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "404"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "413"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "422"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "500"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "504"
+          }
+        },
+        "summary": "Run a named query; parameters are query-string arguments",
+        "tags": [
+          "graph"
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/api/queries": {
+      "get": {
+        "operationId": "list_queries_api_queries_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/QuerySpec"
+                  },
+                  "title": "Response List Queries Api Queries Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "The named queries",
+        "tags": [
+          "graph"
+        ]
+      }
+    },
+    "/api/validate": {
+      "post": {
+        "operationId": "post_validate_api_validate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "404"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "413"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "422"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "500"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "504"
+          }
+        },
+        "summary": "Validate a graph or lint prompt files: schema invariants plus analyzer diagnostics",
+        "tags": [
+          "analysis"
+        ]
+      }
+    }
+  }
+}

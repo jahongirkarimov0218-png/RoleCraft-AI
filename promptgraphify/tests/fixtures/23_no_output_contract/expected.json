@@ -1,0 +1,43 @@
+{
+  "topics": [
+    "missing_output_contract"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "sys",
+      "type": "SystemNode",
+      "quote": "You are a travel advisor."
+    },
+    {
+      "key": "recommend",
+      "type": "TaskNode",
+      "quote": "Recommend three cities for a weekend trip."
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "output.contract_missing",
+      "certainty": "probable",
+      "nodes": []
+    },
+    {
+      "rule_id": "success.criteria_unclear",
+      "certainty": "probable",
+      "nodes": []
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "ConstraintNode",
+    "ContextNode"
+  ],
+  "absent_rules": [
+    "instruction.ambiguous",
+    "variable.undeclared"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "edges": [],
+  "uncovered": []
+}

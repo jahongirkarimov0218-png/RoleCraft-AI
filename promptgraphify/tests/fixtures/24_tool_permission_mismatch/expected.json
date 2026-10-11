@@ -1,0 +1,101 @@
+{
+  "topics": [
+    "tool_permission",
+    "tool_schema"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "search_docs",
+      "type": "ToolNode",
+      "quote": "search_docs(query): search the internal documentation",
+      "defined": true
+    },
+    {
+      "key": "send_email",
+      "type": "ToolNode",
+      "quote": "send_email(to, body): send an email to a customer",
+      "defined": true
+    },
+    {
+      "key": "no_email",
+      "type": "ConstraintNode",
+      "quote": "Never call send_email without approval."
+    },
+    {
+      "key": "s1",
+      "type": "TaskNode",
+      "quote": "Call search_docs with the customer's question."
+    },
+    {
+      "key": "s2",
+      "type": "TaskNode",
+      "quote": "Call send_email with the answer."
+    }
+  ],
+  "edges": [
+    {
+      "relation": "CALLS_TOOL",
+      "source": "s1",
+      "target": "search_docs",
+      "status": "EXTRACTED",
+      "evidence": [
+        "Call search_docs with the customer's question."
+      ],
+      "reference": "search_docs"
+    },
+    {
+      "relation": "CALLS_TOOL",
+      "source": "s2",
+      "target": "send_email",
+      "status": "EXTRACTED",
+      "evidence": [
+        "Call send_email with the answer."
+      ],
+      "reference": "send_email"
+    },
+    {
+      "relation": "CONSTRAINS",
+      "source": "no_email",
+      "target": "send_email",
+      "status": "EXTRACTED",
+      "evidence": [
+        "Never call send_email without approval."
+      ],
+      "reference": "send_email"
+    },
+    {
+      "relation": "PRECEDES",
+      "source": "s1",
+      "target": "s2",
+      "status": "EXTRACTED",
+      "evidence": [
+        "1. Call search_docs with the customer's question.",
+        "2. Call send_email with the answer."
+      ],
+      "reference": "2."
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "tool.permission_mismatch",
+      "certainty": "probable",
+      "nodes": [
+        "no_email",
+        "s2",
+        "send_email"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ExampleNode",
+    "SystemNode",
+    "ContextNode"
+  ],
+  "absent_rules": [
+    "tool.undefined",
+    "tool.unused"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "uncovered": []
+}

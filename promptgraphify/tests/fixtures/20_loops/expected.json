@@ -1,0 +1,97 @@
+{
+  "topics": [
+    "loop"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "t1",
+      "type": "TaskNode",
+      "quote": "Fetch the next page of results."
+    },
+    {
+      "key": "t2",
+      "type": "TaskNode",
+      "quote": "Repeat step 1 until there are no more pages."
+    },
+    {
+      "key": "t3",
+      "type": "TaskNode",
+      "quote": "Keep retrying the upload forever."
+    }
+  ],
+  "edges": [
+    {
+      "relation": "PRECEDES",
+      "source": "t1",
+      "target": "t2",
+      "status": "EXTRACTED",
+      "evidence": [
+        "1. Fetch the next page of results.",
+        "2. Repeat step 1 until there are no more pages."
+      ],
+      "reference": "2."
+    },
+    {
+      "relation": "PRECEDES",
+      "source": "t2",
+      "target": "t3",
+      "status": "EXTRACTED",
+      "evidence": [
+        "2. Repeat step 1 until there are no more pages.",
+        "3. Keep retrying the upload forever."
+      ],
+      "reference": "3."
+    },
+    {
+      "relation": "PRECEDES",
+      "source": "t2",
+      "target": "t1",
+      "status": "EXTRACTED",
+      "evidence": [
+        "Repeat step 1 until there are no more pages."
+      ],
+      "reference": "step 1",
+      "metadata": {
+        "loop": true,
+        "stop_condition": "until there are no more pages"
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "loop.no_stop_condition",
+      "certainty": "probable",
+      "nodes": [
+        "t3"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "SystemNode",
+    "ConstraintNode",
+    "ContextNode"
+  ],
+  "absent_rules": [
+    "dependency.cycle",
+    "task.unreachable"
+  ],
+  "dag": {
+    "status": "ok",
+    "topological_order": [
+      "t1",
+      "t2",
+      "t3"
+    ],
+    "critical_path": [
+      "t1",
+      "t2",
+      "t3"
+    ],
+    "loops": 1
+  },
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "uncovered": []
+}

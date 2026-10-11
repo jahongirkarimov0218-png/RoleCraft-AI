@@ -1,0 +1,26 @@
+# docker compose up --build        then open http://localhost:3000
+# The API is not published to the host; only the UI is, and only on 127.0.0.1 (the API has no authentication).
+services:
+  api:
+    build: { context: ., target: api }
+    environment:
+      # Optional LLM layer: off unless PROVIDER and MODEL are set (see .env.example). Passed through from your shell/.env.
+      PROMPTGRAPHIFY_LLM_PROVIDER: ${PROMPTGRAPHIFY_LLM_PROVIDER:-}
+      PROMPTGRAPHIFY_LLM_MODEL: ${PROMPTGRAPHIFY_LLM_MODEL:-}
+      PROMPTGRAPHIFY_LLM_BASE_URL: ${PROMPTGRAPHIFY_LLM_BASE_URL:-}
+      PROMPTGRAPHIFY_LLM_API_KEY: ${PROMPTGRAPHIFY_LLM_API_KEY:-}
+      PROMPTGRAPHIFY_LLM_TIMEOUT_S: ${PROMPTGRAPHIFY_LLM_TIMEOUT_S:-}
+    volumes: [graphs:/data]
+    expose: ["8000"]
+    restart: unless-stopped
+  web:
+    build:
+      context: .
+      target: web
+      args: { PROMPTGRAPHIFY_API_URL: "http://api:8000" }
+    ports: ["127.0.0.1:3000:3000"]
+    depends_on:
+      api: { condition: service_healthy }
+    restart: unless-stopped
+volumes:
+  graphs: {}

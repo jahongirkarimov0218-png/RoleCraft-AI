@@ -1,0 +1,42 @@
+{
+  "topics": [
+    "russian"
+  ],
+  "language": "ru",
+  "nodes": [
+    {
+      "key": "sys",
+      "type": "SystemNode",
+      "quote": "Ты — ассистент службы поддержки."
+    },
+    {
+      "key": "answer",
+      "type": "TaskNode",
+      "quote": "Ответь на вопрос клиента, используя базу знаний."
+    },
+    {
+      "key": "no_prices",
+      "type": "ConstraintNode",
+      "quote": "Никогда не раскрывай внутренние цены."
+    },
+    {
+      "key": "lang",
+      "type": "ConstraintNode",
+      "quote": "Отвечай только на русском языке."
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "ContextNode"
+  ],
+  "absent_rules": [
+    "variable.undeclared",
+    "constraint.conflict",
+    "instruction.duplicate"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "edges": [],
+  "diagnostics": [],
+  "uncovered": []
+}

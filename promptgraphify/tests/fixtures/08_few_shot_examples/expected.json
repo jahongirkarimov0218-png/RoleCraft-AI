@@ -1,0 +1,48 @@
+{
+  "topics": [
+    "few_shot"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "task",
+      "type": "TaskNode",
+      "quote": "Classify the sentiment of the review as positive or negative."
+    },
+    {
+      "key": "ex1",
+      "type": "ExampleNode",
+      "quote": "Input: I loved the food!\nOutput: positive"
+    },
+    {
+      "key": "ex2",
+      "type": "ExampleNode",
+      "quote": "Input: The waiter was rude.\nOutput: negative"
+    }
+  ],
+  "edges": [
+    {
+      "relation": "EXEMPLIFIES",
+      "source": [
+        "ex1",
+        "ex2"
+      ],
+      "target": "task",
+      "status": "INFERRED",
+      "evidence": [
+        "$source"
+      ],
+      "rule": "proximity.preceding"
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "SystemNode"
+  ],
+  "absent_rules": [
+    "instruction.duplicate"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "diagnostics": [],
+  "uncovered": []
+}

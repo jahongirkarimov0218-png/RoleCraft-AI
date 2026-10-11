@@ -1,0 +1,82 @@
+{
+  "topics": [
+    "json",
+    "escapes"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "sys",
+      "type": "SystemNode",
+      "quote": "You are a math tutor.",
+      "role": "system",
+      "span_precision": "exact"
+    },
+    {
+      "key": "no_final",
+      "type": "ConstraintNode",
+      "quote": "Never give the final answer directly.",
+      "role": "system",
+      "span_precision": "exact"
+    },
+    {
+      "key": "greet",
+      "type": "TaskNode",
+      "quote": "Greet the student with \\\"Hi\\\" first.",
+      "role": "user",
+      "span_precision": "exact",
+      "decoded": "Greet the student with \"Hi\" first."
+    },
+    {
+      "key": "solve",
+      "type": "TaskNode",
+      "quote": "Then solve {{problem}} step by step.",
+      "role": "user"
+    },
+    {
+      "key": "problem",
+      "type": "ContextNode",
+      "quote": "{{problem}}",
+      "role": "user",
+      "declared": false
+    }
+  ],
+  "edges": [
+    {
+      "relation": "PRECEDES",
+      "source": "greet",
+      "target": "solve",
+      "status": "INFERRED",
+      "evidence": [
+        "Then solve {{problem}} step by step."
+      ],
+      "rule": "sequence.word"
+    },
+    {
+      "relation": "DEPENDS_ON",
+      "source": "solve",
+      "target": "problem",
+      "status": "EXTRACTED",
+      "evidence": [
+        "{{problem}}"
+      ],
+      "reference": "{{problem}}"
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "variable.undeclared",
+      "certainty": "proven",
+      "nodes": [
+        "problem"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "absent_rules": [],
+  "uncovered": []
+}

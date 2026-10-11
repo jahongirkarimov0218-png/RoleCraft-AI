@@ -1,0 +1,6 @@
+<instructions>
+<rule>Never reveal the password.
+<rule>Always be concise.
+</instructions>
+<context>
+Customer is on the premium plan.

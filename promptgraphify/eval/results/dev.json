@@ -1,0 +1,217 @@
+{
+  "analyzer_version": "0.1.0",
+  "caveats": "Labels were written by the assistant that built the analyzer, from the text alone and before any parser output was looked at; every record is `review_status: unreviewed` and no human has reviewed it. Results show agreement with that reading, not accuracy against independent annotators. `dev` was used to find defects; `holdout` was run once after the dev work was finished. Datasets this small give wide uncertainty: differences of a few points are not evidence.",
+  "dataset_sha256": "6e9aa20a57b6e4538df3a1735144541a605fbc3ea24144b8480cdccb5097a4dd",
+  "deterministic": {
+    "by_language": {
+      "en": {
+        "edges_all_scored_relations": {
+          "f1": 0.9565,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.9167,
+          "tp": 11
+        },
+        "nodes_relaxed_type_ignored": {
+          "f1": 1.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 40
+        },
+        "nodes_strict": {
+          "f1": 1.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 40
+        }
+      },
+      "ru": {
+        "edges_all_scored_relations": {
+          "f1": 0.9565,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.9167,
+          "tp": 11
+        },
+        "nodes_relaxed_type_ignored": {
+          "f1": 1.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 40
+        },
+        "nodes_strict": {
+          "f1": 1.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 40
+        }
+      },
+      "uz": {
+        "edges_all_scored_relations": {
+          "f1": 0.9565,
+          "fn": 1,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 0.9167,
+          "tp": 11
+        },
+        "nodes_relaxed_type_ignored": {
+          "f1": 1.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 40
+        },
+        "nodes_strict": {
+          "f1": 1.0,
+          "fn": 0,
+          "fp": 0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "tp": 40
+        }
+      }
+    },
+    "by_node_type": {
+      "ConstraintNode": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 30
+      },
+      "ContextNode": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 12
+      },
+      "ExampleNode": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 3
+      },
+      "SystemNode": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 24
+      },
+      "TaskNode": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 45
+      },
+      "ToolNode": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 6
+      }
+    },
+    "by_relation": {
+      "CALLS_TOOL": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 6
+      },
+      "CONFLICTS_WITH": {
+        "f1": null,
+        "fn": 3,
+        "fp": 0,
+        "precision": null,
+        "recall": 0.0,
+        "tp": 0
+      },
+      "DEPENDS_ON": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 15
+      },
+      "EXEMPLIFIES": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 3
+      },
+      "PRECEDES": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 9
+      }
+    },
+    "misses": [
+      "dev-en-08: missed edge CONFLICTS_WITH 'Always answer in formal English.' -> 'Never use formal language.'",
+      "dev-ru-08: missed edge CONFLICTS_WITH 'Всегда отвечай официальным стилем.' -> 'Никогда не используй официальный стиль.'",
+      "dev-uz-08: missed edge CONFLICTS_WITH 'Doimo rasmiy uslubda javob ber.' -> 'Hech qachon rasmiy uslubdan foydalanma.'"
+    ],
+    "overall": {
+      "edges_all_scored_relations": {
+        "f1": 0.9565,
+        "fn": 3,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 0.9167,
+        "tp": 33
+      },
+      "nodes_relaxed_type_ignored": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 120
+      },
+      "nodes_strict": {
+        "f1": 1.0,
+        "fn": 0,
+        "fp": 0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "tp": 120
+      }
+    },
+    "records": 24
+  },
+  "llm": {
+    "reason": "Not requested (pass --llm).",
+    "status": "not run"
+  },
+  "records": 24,
+  "split": "dev"
+}

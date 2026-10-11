@@ -1,0 +1,58 @@
+{
+  "topics": [
+    "contradictory_constraints"
+  ],
+  "language": "en",
+  "nodes": [
+    {
+      "key": "always",
+      "type": "ConstraintNode",
+      "quote": "Always use formal language."
+    },
+    {
+      "key": "never",
+      "type": "ConstraintNode",
+      "quote": "Never use formal language."
+    },
+    {
+      "key": "task",
+      "type": "TaskNode",
+      "quote": "Write a status update."
+    }
+  ],
+  "edges": [
+    {
+      "relation": "CONFLICTS_WITH",
+      "source": "always",
+      "target": "never",
+      "status": "INFERRED",
+      "evidence": [
+        "$source",
+        "$target"
+      ],
+      "rule": "conflict.polarity"
+    }
+  ],
+  "diagnostics": [
+    {
+      "rule_id": "constraint.conflict",
+      "certainty": "probable",
+      "nodes": [
+        "always",
+        "never"
+      ]
+    }
+  ],
+  "absent_types": [
+    "ToolNode",
+    "ExampleNode",
+    "SystemNode",
+    "ContextNode"
+  ],
+  "absent_rules": [
+    "dependency.cycle",
+    "instruction.duplicate"
+  ],
+  "review_status": "unreviewed: hand-written from the fixture text and docs/ANALYSIS_SPEC.md, not derived from parser output",
+  "uncovered": []
+}

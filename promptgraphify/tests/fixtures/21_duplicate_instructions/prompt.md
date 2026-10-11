@@ -1,0 +1,3 @@
+- Never share the password.
+- Be brief.
+- Never share the password.
