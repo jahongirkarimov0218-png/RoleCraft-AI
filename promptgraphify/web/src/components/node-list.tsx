@@ -29,6 +29,7 @@ export function NodeList({
     onSelect({ kind: "node", id: nodes[next].id });
   }
 
+  if (nodes.length === 0) return <p className="rounded-md border border-border bg-surface p-2 text-xs text-muted">No nodes match.</p>;
   return (
     <ul
       role="listbox"
@@ -45,7 +46,6 @@ export function NodeList({
         else if (e.key === "Escape") onSelect(null);
       }}
     >
-      {nodes.length === 0 && <li className="p-2 text-xs text-muted">No nodes match.</li>}
       {nodes.map((n) => (
         <li
           key={n.id}

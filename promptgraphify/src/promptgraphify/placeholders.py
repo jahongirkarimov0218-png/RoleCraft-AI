@@ -7,6 +7,7 @@ raise ``template.malformed``."""
 from __future__ import annotations
 
 import re
+from bisect import bisect_right
 from dataclasses import dataclass
 
 from .text import Interval
@@ -15,6 +16,7 @@ WELL_DOUBLE = re.compile(r"\{\{\s*([^{}]*?)\s*\}\}")
 WELL_DOLLAR = re.compile(r"\$\{\s*([^{}]*?)\s*\}")
 WELL_SINGLE = re.compile(r"(?<![{$\w])\{([^\W\d][\w.\-]*)\}(?!\})")
 OPENER = re.compile(r"\{\{")
+OPEN_TOKEN = re.compile(r"\{\{\S{0,40}")  # the opener and the non-space run glued to it, capped
 ROOT = re.compile(r"^([^\W\d][\w.\-]*)")
 
 
@@ -36,18 +38,46 @@ def root_name(expr: str) -> str | None:
     return m.group(1).split(".")[0] if m else None
 
 
+MAX_MALFORMED_SPAN = 120  # a malformed template is reported with at most this much text as its evidence
+
+
+class _Taken:
+    """Non-overlapping intervals kept sorted, so "does this overlap?" is a bisection, not a scan."""
+
+    def __init__(self) -> None:
+        self.starts: list[int] = []
+        self.ends: list[int] = []
+
+    def overlaps(self, s: int, e: int) -> bool:
+        i = bisect_right(self.starts, s) - 1
+        if i >= 0 and self.ends[i] > s:
+            return True
+        return i + 1 < len(self.starts) and self.starts[i + 1] < e
+
+    def contains(self, pos: int) -> bool:
+        i = bisect_right(self.starts, pos) - 1
+        return i >= 0 and self.starts[i] <= pos < self.ends[i]
+
+    def add(self, s: int, e: int) -> None:
+        i = bisect_right(self.starts, s)
+        self.starts.insert(i, s)
+        self.ends.insert(i, e)
+
+
 def find_placeholders(text: str, a: int, b: int) -> tuple[list[Placeholder], list[Malformed]]:
+    """Well-formed placeholders and malformed openers of ``text[a:b]``. Linear-ish in the region (bisection for
+    overlap and line-end lookups), and a malformed span is capped at ``MAX_MALFORMED_SPAN`` characters."""
     region = text[a:b]
     found: list[Placeholder] = []
     empty: list[Malformed] = []
-    taken: list[Interval] = []
+    taken = _Taken()
     for rx in (WELL_DOUBLE, WELL_DOLLAR, WELL_SINGLE):
         for m in rx.finditer(region):
             s, e = a + m.start(), a + m.end()
-            if any(s < t1 and t0 < e for t0, t1 in taken):
+            if taken.overlaps(s, e):
                 continue
             root = root_name(m.group(1))
-            taken.append((s, e))
+            taken.add(s, e)
             if root is None:
                 empty.append(Malformed((s, e), "empty"))
                 continue
@@ -56,20 +86,24 @@ def find_placeholders(text: str, a: int, b: int) -> tuple[list[Placeholder], lis
 
     bad: list[Malformed] = list(empty)
     closers = [a + m.start() for m in re.finditer(r"\}\}", region)]
+    newlines = [a + m.start() for m in re.finditer(r"\n", region)]
     for m in OPENER.finditer(region):
         s = a + m.start()
-        if any(t0 <= s < t1 for t0, t1 in taken):
+        if taken.contains(s):
             continue
-        line_end = region.find("\n", m.start())
-        line_end = b if line_end == -1 else a + line_end
-        close = next(
-            (c for c in closers if s + 1 < c < line_end and not any(t0 <= c < t1 for t0, t1 in taken)),
-            None,
-        )
-        if close is not None:
+        k = bisect_right(newlines, s)  # first newline after the opener
+        line_end = newlines[k] if k < len(newlines) else b
+        close = None
+        j = bisect_right(closers, s + 1)  # first closer after s + 1
+        while j < len(closers) and closers[j] < line_end:
+            if not taken.contains(closers[j]):
+                close = closers[j]
+                break
+            j += 1
+        if close is not None and close + 2 - s <= MAX_MALFORMED_SPAN:
             bad.append(Malformed((s, close + 2), "nested"))
         else:
-            tail = re.match(r"\{\{\S*", region[m.start() :])
-            bad.append(Malformed((s, s + (tail.end() if tail else 2)), "unbalanced"))
+            tail = OPEN_TOKEN.match(region, m.start())
+            bad.append(Malformed((s, s + (tail.end() - tail.start() if tail else 2)), "unbalanced"))
     bad.sort(key=lambda x: x.span)
     return found, bad

@@ -233,8 +233,8 @@ function Canvas({ view, filters, selection, onSelect, dark, label }: Props) {
       aria-label={label}
     >
       <Background gap={24} size={1} />
-      <Controls showInteractive={false} position="bottom-left" />
-      <MiniMap className="!hidden sm:!block" pannable zoomable position="bottom-right" nodeColor={(n) => TYPE_COLOR[(n.data as NodeData).node.type]} maskColor="rgba(0,0,0,0.35)" />
+      <Controls showInteractive={false} showFitView={false} position="bottom-left" />
+      <MiniMap className="!hidden sm:!block" pannable zoomable position="bottom-right" nodeColor={(n) => TYPE_COLOR[(n.data as NodeData).node.type]} maskColor={dark ? "rgba(0,0,0,0.35)" : "rgba(30,40,60,0.10)"} />
       <Panel position="top-right">
         <button
           type="button"

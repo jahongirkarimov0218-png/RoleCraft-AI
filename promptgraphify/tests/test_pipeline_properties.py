@@ -24,7 +24,7 @@ ROOT = Path(__file__).parent.parent
 
 MARKUP_ALPHABET = st.sampled_from(
     list("abcXYZ .,!?:;-*#`<>/\"'{}$()[]|\n\r\t")
-    + ["{{", "}}", "</", "<x>", "</x>", "\U0001f600", "﻿", "Never ", "step 1", "1. ", "- ", "## "]
+    + ["{{", "}}", "</", "<x>", "</x>", "\U0001f600", "\ufeff", "Never ", "step 1", "1. ", "- ", "## "]
 )
 
 
@@ -142,7 +142,7 @@ def test_limits_and_degenerate_inputs():
         analyze({})
     with pytest.raises(AnalysisError, match="exceeds"):
         analyze({"p.txt": "x" * 20}, max_input_chars=10)
-    for text in ("", "   \n\t", "\n" * 50, "﻿", "\r\n\r\n"):
+    for text in ("", "   \n\t", "\n" * 50, "\ufeff", "\r\n\r\n"):
         doc = analyze({"p.txt": text})
         assert doc.nodes == [] and validate_document(doc) == []
 

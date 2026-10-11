@@ -12,7 +12,7 @@ import json
 from collections.abc import Mapping
 
 from . import __version__
-from .analyzer import Facts, run_analyzer
+from .analyzer import Facts, cap_per_rule, run_analyzer
 from .coverage import compute_coverage
 from .dag import build_dag
 from .extract import Draft, SourceData, extract_source
@@ -232,7 +232,7 @@ def analyze(
         if f.kind == "unresolved_step" and nid
     ]
     dag = build_dag(nodes, edges, unresolved)
-    diagnostics = run_analyzer(Facts(nodes, edges, dag, texts, findings, unresolved))
+    diagnostics, capped = cap_per_rule(run_analyzer(Facts(nodes, edges, dag, texts, findings, unresolved)))
 
     coverage = []
     for s in sources:
@@ -251,7 +251,7 @@ def analyze(
         coverage=coverage,
         diagnostics=diagnostics,
         dag=dag,
-        warnings=layer_b.warnings if layer_b else [],
+        warnings=[*(layer_b.warnings if layer_b else []), *capped],
     )
     assert_valid(doc)
     return doc.model_copy(update={"nodes": [n.model_copy(update={"validation_status": "verified"}) for n in doc.nodes]})

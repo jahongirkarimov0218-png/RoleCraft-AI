@@ -7,7 +7,7 @@ const PROMPTS: Record<string, string> = {
     `1. Summarize </script><script>window.__pwned=2</script> now.`,
     `2. Check step 1 "onmouseover="alert(1)" <img src=x onerror="window.__pwned=1">.`,
     "3. Extract `a``b` | pipe | [link](javascript:alert(1)) <b>bold</b> ]]> & --> %% {x} (y) [z].",
-    "4. Summarize step 3 ‮evil: colon; semicolon; #hash.",
+    "4. Summarize step 3 \u202eevil: colon; semicolon; #hash.",
   ].join("\n"),
   cycle: "1. Check step 2.\n2. Check step 1.\n",
   undefinedTool: "1. Look up the order with the search_orders tool.\n",

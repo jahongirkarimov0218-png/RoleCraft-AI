@@ -41,8 +41,8 @@
   --c-constraint: #a46f00;
   --c-tool: #0a7d8f;
   --c-example: #c02a7c;
-  --ok: #0b8a62;
-  --warn: #a46f00;
+  --ok: #07704e; /* text on white and on 10% tints: >= 5.2:1 (WCAG AA needs 4.5:1 at 10px) */
+  --warn: #855900;
   --err: #c0392b;
   --hl-primary: rgba(47, 95, 208, 0.24);
   --hl-evidence: rgba(164, 111, 0, 0.22);

@@ -9,6 +9,8 @@ Rule functions are small and independent; each returns zero or more ``Diagnostic
 from __future__ import annotations
 
 import hashlib
+import re
+from collections import Counter
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
@@ -89,8 +91,11 @@ def _short(text: str, n: int = 60) -> str:
 
 
 # ------------------------------------------------------------------------------------------- input / parse
+_INVISIBLE = re.compile("[\\s\ufeff\u200b-\u200f\u2060]")  # whitespace, BOM and zero-width marks carry no content
+
+
 def rule_input_empty(f: Facts) -> list[Diagnostic]:
-    if all(not t.strip() for t in f.texts.values()):
+    if all(not _INVISIBLE.sub("", t) for t in f.texts.values()):
         return [_make("input.empty", "The input contains no text.", "Provide a prompt: at least one non-empty line.")]
     return []
 
@@ -504,3 +509,23 @@ def analyze_document(doc: GraphDocument, findings: list[tuple[Finding, str | Non
     """Convenience for tests: run the analyzer on a finished document."""
     texts = {s.path: s.text for s in doc.sources}
     return run_analyzer(Facts(doc.nodes, doc.edges, doc.dag, texts, findings, doc.dag.unresolved))
+
+
+MAX_PER_RULE = 200
+
+
+def cap_per_rule(diagnostics: list[Diagnostic], limit: int = MAX_PER_RULE) -> tuple[list[Diagnostic], list[str]]:
+    """At most ``limit`` diagnostics per rule, in the order given, plus one warning per rule that was cut. A hostile
+    or generated prompt can trigger a rule hundreds of thousands of times; the cut is reported, never silent."""
+    kept: list[Diagnostic] = []
+    seen: Counter[str] = Counter()
+    for d in diagnostics:
+        seen[d.rule_id] += 1
+        if seen[d.rule_id] <= limit:
+            kept.append(d)
+    warnings = [
+        f"diagnostics: {n - limit} more {rule} finding(s) are not listed (limit {limit} per rule, {n} found)"
+        for rule, n in sorted(seen.items())
+        if n > limit
+    ]
+    return kept, warnings

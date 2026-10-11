@@ -257,7 +257,7 @@ export function Workbench() {
         <div className="ml-auto flex items-center gap-2">
           <ExportMenu graphId={doc?.graph_id ?? null} />
           {info?.llm_enabled && (
-            <label className="flex items-center gap-1.5 text-xs" title="Off by default. When on, the prompt text is sent to the provider.">
+            <label className="flex items-center gap-1.5 whitespace-nowrap text-xs" title="Off by default. When on, the prompt text is sent to the provider.">
               <input type="checkbox" checked={useLlm} onChange={(e) => setUseLlm(e.target.checked)} data-testid="llm-toggle" />
               Use LLM layer
             </label>
@@ -289,7 +289,7 @@ export function Workbench() {
 
       <main className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(320px,38%)_minmax(0,1fr)]">
         <section className={cn("min-h-0 flex-col border-r border-border", pane === "editor" ? "flex" : "hidden", "lg:flex")} aria-label="Prompt editor">
-          <div className="flex items-center gap-1 overflow-x-auto border-b border-border px-2 py-1 text-xs" role="tablist" aria-label="Files" data-testid="file-tabs">
+          <div className="flex items-center gap-1 overflow-x-auto border-b border-border px-2 py-1 text-xs" role="group" aria-label="Files" data-testid="file-tabs">
             {files.map((f) => (
               <div key={f.id} className={cn("flex items-center rounded border", f.id === activeId ? "border-accent bg-surface-2" : "border-border")}>
                 {f.id === activeId ? (
@@ -301,7 +301,7 @@ export function Workbench() {
                     className="h-7 w-28 bg-transparent px-1.5"
                   />
                 ) : (
-                  <button type="button" role="tab" onClick={() => setActiveId(f.id)} className="h-7 px-2" data-testid="file-tab">
+                  <button type="button" onClick={() => setActiveId(f.id)} className="h-7 px-2" data-testid="file-tab" aria-label={`Open ${f.name}`}>
                     {f.name}
                   </button>
                 )}
@@ -368,11 +368,11 @@ export function Workbench() {
             <Tabs value={view} onValueChange={(v) => setView(v as "graph" | "dag")} className="flex min-h-0 flex-1 flex-col">
               <div className="flex items-center gap-3 border-b border-border bg-surface px-3 py-1.5">
                 <TabsList>
-                  <TabsTrigger value="graph" data-testid="tab-graph">
-                    Knowledge Graph
+                  <TabsTrigger value="graph" data-testid="tab-graph" className="whitespace-nowrap">
+                    <span className="max-sm:hidden">Knowledge&nbsp;</span>Graph
                   </TabsTrigger>
-                  <TabsTrigger value="dag" data-testid="tab-dag">
-                    Execution DAG
+                  <TabsTrigger value="dag" data-testid="tab-dag" className="whitespace-nowrap">
+                    <span className="max-sm:hidden">Execution&nbsp;</span>DAG
                   </TabsTrigger>
                 </TabsList>
                 {doc && (
