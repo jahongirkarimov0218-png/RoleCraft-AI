@@ -42,9 +42,7 @@ def test_required_topics_languages_types_relations_statuses_are_covered():
 @pytest.mark.parametrize("fx", FIXTURES, ids=IDS)
 def test_expectation_is_wellformed(fx):
     exp = fx.expected
-    assert exp["review_status"].startswith("unreviewed"), (
-        "labels written by the author are never 'human-reviewed'"
-    )
+    assert exp["review_status"].startswith("unreviewed"), "labels written by the author are never 'human-reviewed'"
     assert fx.files, "fixture has no input"
     res = resolve(fx)  # raises QuoteError on missing / ambiguous quotes
 
@@ -82,9 +80,7 @@ def test_expectation_is_wellformed(fx):
             assert e.spec.get("rule"), "INFERRED edge must name its rule"
         if RELATION_TABLE[e.relation].symmetric:
             a, b = keys[e.source].loc, keys[e.target].loc
-            assert (a.file, a.span.start) <= (b.file, b.span.start), (
-                "symmetric edge must start at the earlier span"
-            )
+            assert (a.file, a.span.start) <= (b.file, b.span.start), "symmetric edge must start at the earlier span"
 
     # diagnostics
     for d in exp.get("diagnostics", []):

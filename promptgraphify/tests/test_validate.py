@@ -64,16 +64,12 @@ def test_schema_version_mismatch_stops_early():
 def test_duplicate_node_id():
     doc = good_doc()
     dup = doc.nodes[0].model_copy()
-    assert "node.duplicate_id" in codes(
-        validate_document(doc.model_copy(update={"nodes": [*doc.nodes, dup]}))
-    )
+    assert "node.duplicate_id" in codes(validate_document(doc.model_copy(update={"nodes": [*doc.nodes, dup]})))
 
 
 def test_node_span_must_match_source_exactly():
     assert "node.span_mismatch" in codes(
-        validate_document(
-            mutate_node(good_doc(), "sys:-:identity", original_text="You are a helpful assistant")
-        )
+        validate_document(mutate_node(good_doc(), "sys:-:identity", original_text="You are a helpful assistant"))
     )
     shifted = find_span(TEXT, "Never reveal secrets.")
     assert "node.span_mismatch" in codes(
@@ -98,9 +94,7 @@ def test_unknown_source_file():
 
 @pytest.mark.parametrize("label", ["", "  padded ", "line\nbreak", "x" * 201, "bidi\u202eoverride"])
 def test_bad_labels(label):
-    assert "node.label_invalid" in codes(
-        validate_document(mutate_node(good_doc(), "sys:-:identity", label=label))
-    )
+    assert "node.label_invalid" in codes(validate_document(mutate_node(good_doc(), "sys:-:identity", label=label)))
 
 
 def test_script_payload_label_is_data_not_a_violation():
@@ -111,9 +105,7 @@ def test_script_payload_label_is_data_not_a_violation():
 
 
 def test_span_precision_is_required():
-    assert "node.span_precision" in codes(
-        validate_document(mutate_node(good_doc(), "sys:-:identity", metadata={}))
-    )
+    assert "node.span_precision" in codes(validate_document(mutate_node(good_doc(), "sys:-:identity", metadata={})))
     assert "node.span_precision" in codes(
         validate_document(mutate_node(good_doc(), "sys:-:identity", metadata={"span_precision": "approx"}))
     )
@@ -123,20 +115,14 @@ def test_llm_node_cannot_claim_certainty():
     doc = mutate_node(good_doc(), "sys:-:identity", extraction_method="llm:fake", confidence=1.0)
     assert "node.llm_confidence" in codes(validate_document(doc))
     assert "node.llm_confidence" not in codes(
-        validate_document(
-            mutate_node(good_doc(), "sys:-:identity", extraction_method="llm:fake", confidence=0.7)
-        )
+        validate_document(mutate_node(good_doc(), "sys:-:identity", extraction_method="llm:fake", confidence=0.7))
     )
 
 
 # ------------------------------------------------------------------------------------------ edges
 def test_dangling_endpoints():
-    assert "edge.dangling_target" in codes(
-        validate_document(mutate_edge(good_doc(), 0, target="tool:-:missing"))
-    )
-    assert "edge.dangling_source" in codes(
-        validate_document(mutate_edge(good_doc(), 0, source="task:-:missing"))
-    )
+    assert "edge.dangling_target" in codes(validate_document(mutate_edge(good_doc(), 0, target="tool:-:missing")))
+    assert "edge.dangling_source" in codes(validate_document(mutate_edge(good_doc(), 0, source="task:-:missing")))
 
 
 def test_relation_endpoint_types_enforced():
@@ -159,16 +145,12 @@ def test_conflicts_with_cannot_be_extracted_and_must_start_at_earlier_span():
     )
     ok = base.model_copy(update={"edges": [*base.edges, conflict]})
     assert validate_document(ok) == []
-    as_extracted = conflict.model_copy(
-        update={"status": "EXTRACTED", "confidence": 1.0, "reference": "Never"}
-    )
+    as_extracted = conflict.model_copy(update={"status": "EXTRACTED", "confidence": 1.0, "reference": "Never"})
     assert "edge.status_not_allowed" in codes(
         validate_document(base.model_copy(update={"edges": [*base.edges, as_extracted]}))
     )
     flipped = conflict.model_copy(update={"source": "task:-:call", "target": "con:-:secrets"})
-    assert "edge.symmetric_order" in codes(
-        validate_document(base.model_copy(update={"edges": [*base.edges, flipped]}))
-    )
+    assert "edge.symmetric_order" in codes(validate_document(base.model_copy(update={"edges": [*base.edges, flipped]})))
 
 
 def test_self_loop_only_with_loop_marker():
@@ -189,18 +171,12 @@ def test_self_loop_only_with_loop_marker():
 def test_edge_needs_valid_evidence():
     assert "edge.evidence_empty" in codes(validate_document(mutate_edge(good_doc(), 0, evidence=[])))
     bad = evidence(TEXT, "search_web").model_copy(update={"text": "search_Web"})
-    assert "edge.evidence_span_mismatch" in codes(
-        validate_document(mutate_edge(good_doc(), 0, evidence=[bad]))
-    )
+    assert "edge.evidence_span_mismatch" in codes(validate_document(mutate_edge(good_doc(), 0, evidence=[bad])))
 
 
 def test_extracted_requires_explicit_reference_inside_evidence():
-    assert "edge.extracted_without_reference" in codes(
-        validate_document(mutate_edge(good_doc(), 0, reference=None))
-    )
-    assert "edge.extracted_without_reference" in codes(
-        validate_document(mutate_edge(good_doc(), 0, reference=""))
-    )
+    assert "edge.extracted_without_reference" in codes(validate_document(mutate_edge(good_doc(), 0, reference=None)))
+    assert "edge.extracted_without_reference" in codes(validate_document(mutate_edge(good_doc(), 0, reference="")))
     assert "edge.extracted_reference_not_in_evidence" in codes(
         validate_document(mutate_edge(good_doc(), 0, reference="calculator"))
     )
@@ -229,16 +205,11 @@ def test_ambiguous_confidence_below_one():
     assert "edge.ambiguous_confidence" in codes(
         validate_document(mutate_edge(good_doc(), 0, status="AMBIGUOUS", reference=None, confidence=1.0))
     )
-    assert (
-        validate_document(mutate_edge(good_doc(), 0, status="AMBIGUOUS", reference=None, confidence=0.5))
-        == []
-    )
+    assert validate_document(mutate_edge(good_doc(), 0, status="AMBIGUOUS", reference=None, confidence=0.5)) == []
 
 
 def test_llm_edge_cannot_be_extracted():
-    assert "edge.llm_extracted" in codes(
-        validate_document(mutate_edge(good_doc(), 0, extraction_method="llm:fake"))
-    )
+    assert "edge.llm_extracted" in codes(validate_document(mutate_edge(good_doc(), 0, extraction_method="llm:fake")))
 
 
 def test_duplicate_edge_id():
@@ -281,14 +252,10 @@ def test_coverage_counts_and_partition():
     cov = doc.coverage[0]
     assert cov.uncovered == 0 and cov.covered == cov.total
     assert "coverage.counts" in codes(
-        validate_document(
-            doc.model_copy(update={"coverage": [cov.model_copy(update={"covered": cov.covered - 1})]})
-        )
+        validate_document(doc.model_copy(update={"coverage": [cov.model_copy(update={"covered": cov.covered - 1})]}))
     )
     assert "coverage.total" in codes(
-        validate_document(
-            doc.model_copy(update={"coverage": [cov.model_copy(update={"total": cov.total + 3})]})
-        )
+        validate_document(doc.model_copy(update={"coverage": [cov.model_copy(update={"total": cov.total + 3})]}))
     )
     assert "coverage.missing" in codes(validate_document(doc.model_copy(update={"coverage": []})))
 

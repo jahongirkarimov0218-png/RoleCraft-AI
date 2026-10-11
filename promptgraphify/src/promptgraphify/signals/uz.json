@@ -1,0 +1,196 @@
+{
+ "language": "uz",
+ "verb_position": "end",
+ "identity": [
+  "^sen\\b[^.!?\\n]*\\b\\w*san[.!]?$",
+  "^siz\\b[^.!?\\n]*\\b\\w*siz[.!]?$",
+  "^sening rolin\\w*\\b",
+  "^sizning rolingiz\\b"
+ ],
+ "hierarchy": [
+  "\\bustunlikka ega\\b",
+  "\\bustun turadi\\b"
+ ],
+ "prohibition": [
+  "\\bhech qachon\\b",
+  "\\bmumkin emas\\b",
+  "\\btaqiqlanadi\\b",
+  "\\bqilma(?:ng)?[.!]?$",
+  "\\bkerak emas\\b",
+  "\\bman qilinadi\\b"
+ ],
+ "limit": [
+  "\\bfaqat\\b",
+  "\\bko'pi bilan\\b",
+  "\\bkamida\\b",
+  "\\beng ko'pi\\b",
+  "\\bdan oshmasin\\b",
+  "\\baynan\\b"
+ ],
+ "format": [
+  "\\bton\\w*\\b",
+  "\\bformat\\w*\\b",
+  "\\bjson\\b",
+  "\\bmarkdown\\b",
+  "\\bxml\\b",
+  "\\bjadval\\w*\\b",
+  "\\bro'yxat\\w*\\b",
+  "\\bqisqa\\b",
+  "\\brasmiy\\b",
+  "\\btil\\w*\\b",
+  "\\bmaxfiy\\b",
+  "\\bshaxsiy ma'lumot\\w*\\b"
+ ],
+ "output_spec": [
+  "\\bjson\\b",
+  "\\bmarkdown\\b",
+  "\\bxml\\b",
+  "\\bformat\\w*\\b",
+  "\\bjadval\\w*\\b",
+  "\\bko'pi bilan\\b"
+ ],
+ "strict_verbs": [
+  "tekshiring",
+  "tekshir",
+  "toping",
+  "top",
+  "yig'ing",
+  "yig'",
+  "tarjima qiling",
+  "tarjima qil",
+  "tahlil qiling",
+  "tahlil qil",
+  "yuboring",
+  "yubor",
+  "aniqlang",
+  "aniqla",
+  "tuzing",
+  "tuz",
+  "yarating",
+  "yarat",
+  "ajrating",
+  "ajrat",
+  "solishtiring",
+  "solishtir",
+  "so'rang",
+  "so'ra",
+  "takrorlang",
+  "takrorla",
+  "ro'yxatlang",
+  "uzating",
+  "uzat"
+ ],
+ "task_verbs": [
+  "javob ber",
+  "javob bering",
+  "yozing",
+  "yoz",
+  "ayting",
+  "ayt",
+  "foydalaning",
+  "foydalan",
+  "bering",
+  "ber",
+  "qaytaring",
+  "qaytar",
+  "tushuntiring",
+  "tushuntir",
+  "rioya qiling",
+  "rioya qil",
+  "qo'shing",
+  "qo'sh"
+ ],
+ "prefix_words": [
+  "iltimos",
+  "keyin",
+  "so'ng",
+  "shuningdek",
+  "avval",
+  "nihoyat",
+  "endi",
+  "aks holda",
+  "doim",
+  "va"
+ ],
+ "condition_words": [
+  "agar",
+  "qachon",
+  "qachonki"
+ ],
+ "otherwise_words": [
+  "aks holda"
+ ],
+ "sequence_words": [
+  "^keyin\\b",
+  "^so'ng\\b",
+  "^undan keyin\\b"
+ ],
+ "loop": [
+  "\\btakrorla\\w*\\b",
+  "\\bto'xtamay\\b"
+ ],
+ "loop_back": [
+  "\\btakrorla\\w*\\b",
+  "\\bqayting\\b"
+ ],
+ "stop": [
+  "\\bgacha\\b"
+ ],
+ "step_ref": [
+  "\\b(\\d+)-qadam\\b",
+  "\\bqadam\\s+(\\d+)\\b"
+ ],
+ "produce_before": [],
+ "produce_after": [
+  "^\\s*sifatida\\s+saqla\\w*"
+ ],
+ "handoff": [
+  "\\b(?:uzating|uzat|yuboring|yubor)\\b"
+ ],
+ "call_verbs": [
+  "\\b(?:chaqiring|chaqir|foydalaning|foydalan)\\b"
+ ],
+ "tool_mention": [
+  "\\b([A-Za-z_][\\w.\\-]*)\\s+(?:vositasi|asbobi)\\b"
+ ],
+ "vague": [
+  "\\byaxshi\\b",
+  "\\bmos\\b",
+  "\\bkerakli\\b",
+  "\\bbir nechta\\b",
+  "\\bba'zi\\b",
+  "\\btezda\\b",
+  "\\bkerak bo'lsa\\b",
+  "\\bva hokazo\\b"
+ ],
+ "injection": [
+  "\\boldingi\\s+(?:barcha\\s+)?(?:ko'rsatma\\w*|yo'riqnoma\\w*)(?:ni|lar)?\\s+e'tibor(?:ga olma\\w*|siz qoldir\\w*)",
+  "\\btizim prompt\\w*\\s+(?:oshkor|ko'rsat)\\w*",
+  "\\boldingi ko'rsatma\\w*\\s+unut\\w*"
+ ],
+ "success": [
+  "\\bmuvaffaqiyat\\w*\\b",
+  "\\btayyor bo'ladi\\b",
+  "\\bmezon\\w*\\b"
+ ],
+ "context_missing": [
+  "\\byuqoridagi\\b",
+  "\\bilova qilingan\\b",
+  "\\boldingi suhbat\\b"
+ ],
+ "abbreviations": [
+  "masalan",
+  "va b",
+  "va h",
+  "t",
+  "bet",
+  "mas"
+ ],
+ "obligation": [
+  "\\bdoim\\b",
+  "\\bdoimo\\b",
+  "\\balbatta\\b",
+  "\\bmajburiy\\b",
+  "\\bshart\\b"
+ ]
+}

@@ -148,12 +148,8 @@ def _check_edges(doc: GraphDocument, nodes: dict[str, Node], sources: dict, out:
                 )
         if e.status not in spec.allowed_status:
             out.append(Violation("edge.status_not_allowed", f"{e.relation} cannot be {e.status}", e.id))
-        if e.source == e.target and not (
-            e.metadata.get("loop") is True or e.metadata.get("self_reference") is True
-        ):
-            out.append(
-                Violation("edge.self_loop", "self-loop without metadata.loop / metadata.self_reference", e.id)
-            )
+        if e.source == e.target and not (e.metadata.get("loop") is True or e.metadata.get("self_reference") is True):
+            out.append(Violation("edge.self_loop", "self-loop without metadata.loop / metadata.self_reference", e.id))
         if not e.evidence:
             out.append(Violation("edge.evidence_empty", "every edge needs at least one evidence span", e.id))
         _check_evidence(e.evidence, sources, e.id, "edge", out)
@@ -197,15 +193,11 @@ def _check_status_rules(e: Edge, out: list[Violation]) -> None:
         out.append(Violation("edge.llm_extracted", "an LLM-proposed edge cannot be EXTRACTED", e.id))
 
 
-def _check_evidence(
-    items: list[Evidence], sources: dict, subject: str, kind: str, out: list[Violation]
-) -> None:
+def _check_evidence(items: list[Evidence], sources: dict, subject: str, kind: str, out: list[Violation]) -> None:
     for ev in items:
         src = sources.get(ev.source_file)
         if src is None:
-            out.append(
-                Violation(f"{kind}.evidence_source_unknown", f"unknown source {ev.source_file!r}", subject)
-            )
+            out.append(Violation(f"{kind}.evidence_source_unknown", f"unknown source {ev.source_file!r}", subject))
             continue
         problem = verify_span(src.text, ev.span, ev.text)
         if problem:

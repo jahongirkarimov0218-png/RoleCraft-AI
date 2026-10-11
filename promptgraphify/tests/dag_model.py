@@ -40,9 +40,7 @@ def analyse(res: Resolved) -> dict:
     g.add_edges_from(arrows)
     if not vertices:
         return {"status": "empty", "loops": loops}
-    cycles = [
-        c for c in nx.strongly_connected_components(g) if len(c) > 1 or any(g.has_edge(v, v) for v in c)
-    ]
+    cycles = [c for c in nx.strongly_connected_components(g) if len(c) > 1 or any(g.has_edge(v, v) for v in c)]
     if cycles:
         return {"status": "blocked", "cycle_nodes": sorted(set().union(*cycles)), "loops": loops}
     indeg = dict(g.in_degree())

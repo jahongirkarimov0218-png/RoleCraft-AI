@@ -1,0 +1,168 @@
+{
+ "heading_roles": {
+  "system": [
+   "system",
+   "системный промпт",
+   "system prompt",
+   "tizim"
+  ],
+  "developer": [
+   "developer"
+  ],
+  "user": [
+   "user"
+  ],
+  "assistant": [
+   "assistant"
+  ]
+ },
+ "tag_roles": {
+  "system": [
+   "system"
+  ],
+  "developer": [
+   "developer"
+  ],
+  "user": [
+   "user"
+  ],
+  "assistant": [
+   "assistant"
+  ]
+ },
+ "agent_heading": [
+  "^(?:agent|агент)\\s*:\\s*(?P<name>.+)$",
+  "^(?:agent)\\s+(?P<name>[A-Z][\\w-]*)$"
+ ],
+ "constraint_groups": [
+  "rule",
+  "rules",
+  "constraint",
+  "constraints",
+  "guideline",
+  "guidelines",
+  "restriction",
+  "restrictions",
+  "requirement",
+  "requirements",
+  "safety",
+  "style rules",
+  "output",
+  "ограничения",
+  "правила",
+  "cheklovlar",
+  "qoidalar"
+ ],
+ "example_names": [
+  "example",
+  "examples",
+  "shot",
+  "shots",
+  "few-shot",
+  "пример",
+  "примеры",
+  "misol",
+  "misollar"
+ ],
+ "context_names": [
+  "context",
+  "contexts",
+  "document",
+  "documents",
+  "user_input",
+  "user input",
+  "data",
+  "retrieved documents",
+  "knowledge",
+  "glossary",
+  "контекст",
+  "kontekst",
+  "input data"
+ ],
+ "tool_names": [
+  "tools",
+  "functions",
+  "инструменты",
+  "vositalar",
+  "asboblar"
+ ],
+ "variable_names": [
+  "variables",
+  "variable",
+  "inputs",
+  "input variables",
+  "parameters",
+  "переменные",
+  "o'zgaruvchilar"
+ ],
+ "label_example": [
+  "^(?:examples?|few-shot examples?|пример(?:ы)?|misol(?:lar)?)\\s*\\d*\\s*:$"
+ ],
+ "label_context": [
+  "^(?:context|контекст|kontekst|retrieved documents)\\s*:$"
+ ],
+ "label_tools": [
+  "^(?:tools|инструменты|vositalar)\\s*:$"
+ ],
+ "label_variables": [
+  "^(?:variables|inputs|input variables|переменные|o'zgaruvchilar)\\s*:$"
+ ],
+ "tool_def_names": [
+  "tool",
+  "function",
+  "инструмент",
+  "vosita",
+  "asbob"
+ ],
+ "stopwords": [
+  "the",
+  "a",
+  "an",
+  "to",
+  "of",
+  "and",
+  "in",
+  "on",
+  "is",
+  "be",
+  "it",
+  "you",
+  "your",
+  "that",
+  "this",
+  "with",
+  "for",
+  "as",
+  "at",
+  "by",
+  "do",
+  "not",
+  "never",
+  "always",
+  "must",
+  "should",
+  "и",
+  "в",
+  "на",
+  "с",
+  "по",
+  "не",
+  "ни",
+  "всегда",
+  "никогда",
+  "нужно",
+  "надо",
+  "и",
+  "а",
+  "о",
+  "va",
+  "bilan",
+  "uchun",
+  "hech",
+  "qachon",
+  "doim",
+  "doimo",
+  "albatta",
+  "emas"
+ ]
+}

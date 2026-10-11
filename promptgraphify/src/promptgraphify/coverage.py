@@ -78,9 +78,7 @@ def _trim(text: str, start: int, end: int) -> Interval | None:
     return (start, end) if end > start else None
 
 
-def compute_coverage(
-    path: str, text: str, node_spans: list[Span], structural_spans: list[Span]
-) -> SourceCoverage:
+def compute_coverage(path: str, text: str, node_spans: list[Span], structural_spans: list[Span]) -> SourceCoverage:
     """Partition ``text``: structural spans overlapping a node are clipped away so a node always
     wins; everything left over (trimmed of surrounding whitespace) is reported as uncovered."""
     prefix = nonspace_prefix(text)

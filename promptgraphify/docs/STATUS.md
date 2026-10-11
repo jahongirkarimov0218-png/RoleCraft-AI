@@ -1,6 +1,6 @@
 # Status
 
-Resume from this file if context is lost. Last updated: end of M0.
+Resume from this file if context is lost. Last updated: end of M1.
 
 ## Stage
 

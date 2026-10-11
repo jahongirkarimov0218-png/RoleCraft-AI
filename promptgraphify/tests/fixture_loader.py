@@ -99,9 +99,7 @@ def locate(fx: Fixture, quote: str, occurrence: int | None = None, file: str | N
     return Located(file, Span(start=pick, end=pick + len(quote)), quote)
 
 
-def _evidence_items(
-    fx: Fixture, items: list, nodes: dict[str, ExpNode], source: str, target: str
-) -> list[Located]:
+def _evidence_items(fx: Fixture, items: list, nodes: dict[str, ExpNode], source: str, target: str) -> list[Located]:
     out = []
     for item in items:
         spec = {"quote": item} if isinstance(item, str) else dict(item)
