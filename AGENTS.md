@@ -9,8 +9,9 @@
 |---------|----------|
 | `npm install` | Установка зависимостей проекта |
 | `npm run dev` | Запуск локального dev-сервера (http://localhost:3000) |
-| `npm test` | Запуск полного набора автотестов Vitest (62 теста: движок, UI, безопасность, парсеры) |
+| `npm test` | Запуск полного набора автотестов Vitest (85 тестов: движок, UI, безопасность, парсеры, отчёт о нише) |
 | `npx playwright test e2e/rolecraft.spec.ts` | Запуск Playwright E2E тестов (7 сценариев, десктоп и мобильный Pixel 5) |
+| `npx playwright test e2e/niche-report.spec.ts` | E2E страницы `/niche-report` (6 сценариев × 2 проекта); dev-сервер должен быть запущен с `NICHE_REPORT_ENABLED=true` |
 | `npm run build` | Сборка production-билда Next.js App Router |
 
 ## Структура проекта
@@ -23,8 +24,11 @@ d:/portfolio/
 │   │   │   ├── rolecraft/generate/   # Server-side Route Handler POST: валидация, SSE стриминг
 │   │   │   └── analyze/              # API Route Handler анализа фидбека
 │   │   ├── globals.css               # Emil Kowalski физика (:active scale 0.98), @media print стили
-│   │   ├── layout.tsx                # Базовый макет: шрифты Geist/Inter, метаданные
-│   │   └── page.tsx                  # Главная страница: управление состоянием, SSE поток, UI RoleCraft
+│   │   ├── (main)/                   # Группа маршрутов продукта (URL не меняются)
+│   │   │   ├── layout.tsx            # Базовый макет: шрифты Geist/Inter, метаданные, Header/Footer
+│   │   │   └── page.tsx              # Главная страница: управление состоянием, SSE поток, UI RoleCraft
+│   │   └── (report)/                 # Отдельный корневой layout (lang="ru", без Header/Footer), ADR 0004
+│   │       └── niche-report/page.tsx # Отчёт о выборе ниши: 404 без NICHE_REPORT_ENABLED=true, noindex
 │   ├── components/
 │   │   ├── rolecraft/                # UI-компоненты RoleCraft генератора
 │   │   │   ├── header.tsx            # Enterprise-шапка, статус Thinking Partner, модалка методики
@@ -35,6 +39,7 @@ d:/portfolio/
 │   │   │   ├── streaming-markdown-view.tsx # Стриминг Markdown с бейджами Anti-Persona и Value Prop
 │   │   │   ├── action-bar.tsx        # Метрики качества, 1-клик копирование и чистый PDF экспорт
 │   │   │   └── index.ts              # Баррель-экспорт компонентов
+│   │   ├── niche-report/             # Кнопка печати отчёта о нише
 │   │   └── layout/                   # Общие элементы макета (Header, Footer)
 │   ├── lib/
 │   │   ├── rolecraft/                # Доменный движок генерации и обработки
@@ -44,16 +49,20 @@ d:/portfolio/
 │   │   │   ├── prompt-nenujna-engine.ts # Движок синтеза: LLM + офлайн Fallback + генератор SSE стрима
 │   │   │   ├── export-pdf.ts         # Утилита вызова чистого браузерного PDF экспорта
 │   │   │   └── index.ts              # Баррель-экспорт библиотеки
+│   │   ├── niche-report/             # Отчёт о нише: контракт, валидатор V-01…V-12, гард флага, данные
 │   │   └── utils.ts                  # Утилиты классов (clsx, tailwind-merge)
 │   └── types/                        # Общие системные типы
 ├── e2e/
-│   └── rolecraft.spec.ts             # Playwright E2E тесты (загрузка, пресеты, генерация, копирование, PDF, валидация, мобайл)
+│   ├── rolecraft.spec.ts             # Playwright E2E тесты (загрузка, пресеты, генерация, копирование, PDF, валидация, мобайл)
+│   └── niche-report.spec.ts          # E2E отчёта о нише (вердикт, порог, мобайл, 1 лист A4, ссылки, черновик)
 ├── test/
 │   ├── rolecraft/
 │   │   ├── engine.test.ts            # Юнит-тесты движка, фильтра клише и генератора (9 тестов)
 │   │   └── ui-components.test.ts     # Юнит-тесты компонентов формы, карточек и экшенов (9 тестов)
-│   └── ...                           # Тесты анализатора, контрактов и безопасности (всего 62 теста)
-├── docs/adr/                         # Архитектурные решения (ADR 0001, 0002, 0003)
+│   ├── niche-report.test.ts          # Валидатор V-01…V-12, гард флага, данные отчёта (23 теста)
+│   └── ...                           # Тесты анализатора, контрактов и безопасности (всего 85 тестов)
+├── intent/                          # Intent, spec и plan отчёта о выборе ниши
+├── docs/adr/                         # Архитектурные решения (ADR 0001–0004)
 ├── playwright.config.ts              # Конфигурация Playwright E2E
 └── vitest.config.ts                  # Конфигурация Vitest
 ```
@@ -94,6 +103,7 @@ d:/portfolio/
 
 - `GEMINI_API_KEY`: API ключ Google Gemini (опционально)
 - `OPENAI_API_KEY`: API ключ OpenAI (опционально)
+- `NICHE_REPORT_ENABLED`: `"true"` включает страницу `/niche-report` (по умолчанию выключена, 404). Это **не** механизм приватности: на публичном деплое включённую страницу откроет любой, кто знает URL. Страница статическая, флаг читается при сборке.
 *Примечание: Платформа полностью работоспособна без указания API-ключей благодаря встроенному автономному движку семантического синтеза.*
 
 ## Autopilot ishlash tartibi
