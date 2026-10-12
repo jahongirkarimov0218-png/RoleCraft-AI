@@ -167,7 +167,7 @@ describe("ProblemsTable, Filtering & Export (R04, R06, R07)", () => {
 
 describe("HomePage Integration (R01, R02, R08, R09)", () => {
   it("should export default HomePage component", async () => {
-    const pageModule = await import("@/app/page");
+    const pageModule = await import("@/app/(main)/page");
     expect(pageModule.default).toBeDefined();
     expect(typeof pageModule.default).toBe("function");
 

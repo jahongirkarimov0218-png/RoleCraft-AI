@@ -22,6 +22,8 @@
 | `src/app/layout.tsx` | `src/app/(main)/layout.tsx`, единственная правка: `./globals.css` → `../globals.css` |
 | `src/app/page.tsx` | `src/app/(main)/page.tsx` |
 
+Отступление при реализации (шаг 1): `test/results-components.test.ts` импортировал `@/app/page`. Путь изменён на `@/app/(main)/page`, в остальном тест не трогали.
+
 ### Новые
 | Файл | Назначение |
 |---|---|
@@ -77,7 +79,7 @@
 
 | # | Шаг | Проверка, без которой дальше не идём |
 |---|---|---|
-| 0 | Точка отсчёта на текущем коде | Сохранить выводы `npm run build`, `npx vitest run` (ожидается 62/62), `npx playwright test` |
+| 0 | Точка отсчёта на текущем коде | Сохранить выводы `npm run build`, `npx vitest run` (ожидается 62/62), `npx playwright test`. **Факт (2026-10-12):** build OK, 62/62. E2E на коде до изменений: 18–19 из 20, нестабильно падают `product-flow` «Instant Preview» (Desktop) и `rolecraft` «Scenario 3» (Mobile, проверка мимолётного состояния загрузки). Это пред-существующая нестабильность, в этой задаче не исправляется; критерий для шагов 1+ — новых падений нет. В контейнере Chromium 1194, а `@playwright/test` 1.63 ждёт 1243, поэтому локально запускается через неотслеживаемую обёртку конфига с `executablePath: /opt/pw-browsers/chromium` (в репозиторий не коммитится) |
 | 1 | Перенос в `(main)/` | build OK; 62/62; старые E2E зелёные, как в шаге 0; `/nonexistent` → 404 (R1) |
 | 2 | `types.ts`, `validate.ts`, `guard.ts`, `test/niche-report.test.ts` | Тесты зелёные, включая кейс «работа с клиниками» без ложного срабатывания V-11 (R3). Если временно убрать V-03 и V-08 из валидатора, их негативные кейсы должны падать |
 | 3 | `report-data.ts` (тестовые данные, `draft`), `(report)/layout.tsx`, `page.tsx`, `print-button.tsx` | build OK; с флагом страница открывается, без флага — 404; в `<head>` есть `noindex` |
