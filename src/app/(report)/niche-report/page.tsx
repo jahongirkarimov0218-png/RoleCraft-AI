@@ -74,8 +74,10 @@ export default function NicheReportPage() {
 
   const sources: Source[] = [];
   for (const evidence of evidenceList) {
-    if (evidence.kind === "fact" && evidence.source && !sources.some((s) => s.url === evidence.source!.url)) {
-      sources.push(evidence.source);
+    // Only https links are rendered, even for drafts where V-08 is not enforced (no javascript:/data: hrefs).
+    const source = evidence.source;
+    if (evidence.kind === "fact" && source && source.url.startsWith("https://") && !sources.some((s) => s.url === source.url)) {
+      sources.push(source);
     }
   }
 
