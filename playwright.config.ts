@@ -33,5 +33,7 @@ export default defineConfig({
     port: 3000,
     reuseExistingServer: true,
     timeout: 120000,
+    // Enables /niche-report for e2e/niche-report.spec.ts (has no effect on a reused server).
+    env: { NICHE_REPORT_ENABLED: "true" },
   },
 });
