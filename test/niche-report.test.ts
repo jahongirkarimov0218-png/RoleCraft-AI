@@ -5,6 +5,7 @@ import {
   containsProductIdea,
   countVisibleWords,
   isNicheReportEnabled,
+  NICHE_REPORT,
   type NicheReport,
 } from "@/lib/niche-report";
 
@@ -172,6 +173,19 @@ describe("validateNicheReport — draft status", () => {
     r.meta.status = "draft";
     r.test.durationDays = 7 as 14;
     expect(rules(r)).toContain("V-06");
+  });
+});
+
+describe("NICHE_REPORT — the shipped content", () => {
+  // Drafts are checked against V-01…V-07, final reports against all rules (spec §8.1). No skip.
+  it("passes the validator for its current status", () => {
+    expect(validateNicheReport(NICHE_REPORT)).toEqual([]);
+  });
+
+  it("states no unsourced facts while it is a draft", () => {
+    if (NICHE_REPORT.meta.status !== "draft") return;
+    const kinds = NICHE_REPORT.candidates.flatMap((c) => c.scores.flatMap((s) => s.evidence.map((e) => e.kind)));
+    expect(kinds).not.toContain("fact");
   });
 });
 
